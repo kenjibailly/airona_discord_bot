@@ -8,6 +8,10 @@ services:
     volumes:
       - ./:/home/ubuntu/airona/
       - /home/ubuntu/airona/node_modules
+    env_file:
+      - .env
+    ports:
+      - "3000:3000" # expose dashboard
     networks:
       - docker_swag
 
@@ -27,6 +31,31 @@ services:
       - MONGO_INITDB_DATABASE=root-db
     env_file:
       - .env
+    networks:
+      - docker_swag
+
+  discord_dashboard_airona:
+    build: ./dashboard
+    container_name: discord_dashboard_airona
+    restart: unless-stopped
+    command: sh -c "cd /app/frontend && npm run dev -- --host & cd /app/backend && npm run dev"
+    ports:
+      - 8090:8080
+      - 5173:5173  # vite dev server
+    environment:
+      - MONGO_URI=mongodb://discord_bot_airona_db:27017/airona
+      - DISCORD_CLIENT_ID=${APP_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - DISCORD_BOT_TOKEN=${DISCORD_TOKEN}
+      - DOMAIN=${DOMAIN}
+    depends_on:
+      - discord_bot_airona_db
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules
+      - /app/backend/node_modules
+      - /app/frontend/node_modules
+      - /app/frontend/dist  # Keep the built dist from container
     networks:
       - docker_swag
 
