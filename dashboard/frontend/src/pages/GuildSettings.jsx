@@ -7,21 +7,34 @@ export default function GuildSettings() {
   const navigate = useNavigate();
   const [guild, setGuild] = useState(null);
   const [user, setUser] = useState(null);
+  const [hasPermission, setHasPermission] = useState(false);
 
   useEffect(() => {
     axios.get("/auth/session", { withCredentials: true })
       .then(res => {
         setUser(res.data.user);
         const foundGuild = res.data.guilds.find(g => g.id === guildId);
+        
         if (foundGuild) {
-          setGuild(foundGuild);
+          // Check MANAGE_GUILD permission
+          const MANAGE_GUILD = 0x20;
+          const hasManagePermission = (parseInt(foundGuild.permissions) & MANAGE_GUILD) === MANAGE_GUILD;
+          
+          if (hasManagePermission) {
+            setGuild(foundGuild);
+            setHasPermission(true);
+          } else {
+            // User doesn't have permission
+            alert("You don't have permission to manage this server");
+            navigate("/dashboard");
+          }
         } else {
-          navigate("/dashboard"); // Redirect if guild not found
+          navigate("/dashboard");
         }
       })
       .catch(err => {
         console.error(err);
-        navigate("/"); // Redirect to login if not authenticated
+        navigate("/");
       });
   }, [guildId, navigate]);
 
@@ -43,7 +56,7 @@ export default function GuildSettings() {
     return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
   };
 
-  if (!guild) return <div>Loading...</div>;
+  if (!guild || !hasPermission) return <div>Loading...</div>;
 
   return (
     <div>

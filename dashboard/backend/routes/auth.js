@@ -50,11 +50,19 @@ router.get("/callback", async (req, res) => {
       }
     );
 
-    // Filter user guilds to only include ones where bot is present
+    // MANAGE_GUILD permission bit is 0x20 (32 in decimal)
+    const MANAGE_GUILD = 0x20;
+
+    // Filter user guilds to only include ones where:
+    // 1. Bot is present
+    // 2. User has MANAGE_GUILD permission
     const botGuildIds = new Set(botGuildsResponse.data.map((g) => g.id));
-    const mutualGuilds = guildsResponse.data.filter((g) =>
-      botGuildIds.has(g.id)
-    );
+    const mutualGuilds = guildsResponse.data.filter((g) => {
+      const hasBot = botGuildIds.has(g.id);
+      const hasPermission =
+        (parseInt(g.permissions) & MANAGE_GUILD) === MANAGE_GUILD;
+      return hasBot && hasPermission;
+    });
 
     req.session.user = userResponse.data;
     req.session.guilds = mutualGuilds;
@@ -65,6 +73,7 @@ router.get("/callback", async (req, res) => {
     res.status(500).send("Error during OAuth2 login");
   }
 });
+
 // Add this new endpoint
 router.get("/session", (req, res) => {
   if (!req.session.user) {
