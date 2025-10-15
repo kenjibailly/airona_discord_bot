@@ -1,0 +1,25 @@
+.container {
+  min-height: 100vh;
+}
+
+.navBar {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 3px solid rgb(43, 41, 63);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.button {
+  background-color: #4b4372;
+  border-radius: 5px;
+  color: white;
+  border: 1px solid #7268a6;
+  padding: 5px 10px;
+  cursor: pointer;
+}
