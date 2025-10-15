@@ -1,24 +1,29 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
-export default function Dashboard() {
-  const [guilds, setGuilds] = useState([]);
-  const [user, setUser] = useState(null);
-  const [selectedGuild, setSelectedGuild] = useState("");
+export default function GuildSettings() {
+  const { guildId } = useParams();
   const navigate = useNavigate();
+  const [guild, setGuild] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     axios.get("/auth/session", { withCredentials: true })
       .then(res => {
-        setGuilds(res.data.guilds || []);
         setUser(res.data.user);
+        const foundGuild = res.data.guilds.find(g => g.id === guildId);
+        if (foundGuild) {
+          setGuild(foundGuild);
+        } else {
+          navigate("/dashboard"); // Redirect if guild not found
+        }
       })
       .catch(err => {
         console.error(err);
         navigate("/"); // Redirect to login if not authenticated
       });
-  }, [navigate]);
+  }, [guildId, navigate]);
 
   const handleLogout = () => {
     window.location.href = "/auth/logout";
@@ -33,13 +38,12 @@ export default function Dashboard() {
     return `https://cdn.discordapp.com/embed/avatars/${(parseInt(user.id) >> 22) % 6}.png`;
   };
 
-  const handleGuildChange = (e) => {
-    const guildId = e.target.value;
-    setSelectedGuild(guildId);
-    if (guildId) {
-      navigate(`/guild/${guildId}`);
-    }
+  const getGuildIconUrl = (guild) => {
+    if (!guild || !guild.icon) return null;
+    return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
   };
+
+  if (!guild) return <div>Loading...</div>;
 
   return (
     <div>
@@ -51,21 +55,10 @@ export default function Dashboard() {
         borderBottom: "1px solid #ccc"
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-          <h2>Discord Dashboard</h2>
-          {guilds.length > 0 && (
-            <select 
-              value={selectedGuild} 
-              onChange={handleGuildChange}
-              style={{ padding: "5px 10px", fontSize: "14px" }}
-            >
-              <option value="">Select a server...</option>
-              {guilds.map(guild => (
-                <option key={guild.id} value={guild.id}>
-                  {guild.name}
-                </option>
-              ))}
-            </select>
-          )}
+          <Link to="/dashboard" style={{ textDecoration: "none", color: "inherit" }}>
+            <h2>Discord Dashboard</h2>
+          </Link>
+          <span>→ {guild.name}</span>
         </div>
         
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -90,8 +83,23 @@ export default function Dashboard() {
       </nav>
 
       <div style={{ padding: "2rem" }}>
-        <h1>Welcome to your Dashboard!</h1>
-        <p>Select a server from the dropdown to configure its settings.</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "2rem" }}>
+          {getGuildIconUrl(guild) && (
+            <img 
+              src={getGuildIconUrl(guild)} 
+              alt={guild.name}
+              style={{ 
+                width: "64px", 
+                height: "64px", 
+                borderRadius: "50%" 
+              }}
+            />
+          )}
+          <h1>{guild.name} Settings</h1>
+        </div>
+        
+        <p>Guild ID: {guild.id}</p>
+        <p>Settings panel coming soon...</p>
       </div>
     </div>
   );
