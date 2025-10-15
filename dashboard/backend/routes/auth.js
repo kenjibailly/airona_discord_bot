@@ -42,14 +42,50 @@ router.get("/callback", async (req, res) => {
       }
     );
 
+    // Get bot's guilds
+    const botGuildsResponse = await axios.get(
+      "https://discord.com/api/users/@me/guilds",
+      {
+        headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` },
+      }
+    );
+
+    // Filter user guilds to only include ones where bot is present
+    const botGuildIds = new Set(botGuildsResponse.data.map((g) => g.id));
+    const mutualGuilds = guildsResponse.data.filter((g) =>
+      botGuildIds.has(g.id)
+    );
+
     req.session.user = userResponse.data;
-    req.session.guilds = guildsResponse.data;
+    req.session.guilds = mutualGuilds;
 
     res.redirect(`/dashboard`);
   } catch (err) {
     console.error(err);
     res.status(500).send("Error during OAuth2 login");
   }
+});
+// Add this new endpoint
+router.get("/session", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  res.json({
+    user: req.session.user,
+    guilds: req.session.guilds || [],
+  });
+});
+
+router.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error destroying session:", err);
+      return res.status(500).json({ error: "Failed to logout" });
+    }
+    res.clearCookie("connect.sid"); // Clear the session cookie
+    res.redirect(process.env.FRONTEND_URL || "/");
+  });
 });
 
 module.exports = router;
