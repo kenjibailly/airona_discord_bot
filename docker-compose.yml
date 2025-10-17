@@ -56,6 +56,8 @@ services:
       - /app/backend/node_modules
       - /app/frontend/node_modules
       - /app/frontend/dist  # Keep the built dist from container
+    env_file:
+      - .env
     networks:
       - docker_swag
 

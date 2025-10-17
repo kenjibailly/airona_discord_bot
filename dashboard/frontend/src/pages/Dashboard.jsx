@@ -39,7 +39,7 @@ export default function Dashboard() {
             </ul>
             <p>
               <a
-                href={`https://discord.com/api/oauth2/authorize?client_id=${import.meta.env.VITE_DISCORD_CLIENT_ID}&permissions=8&scope=bot`}
+                href={`https://discord.com/api/oauth2/authorize?client_id=${import.meta.env.DISCORD_CLIENT_ID}&permissions=8&scope=bot`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

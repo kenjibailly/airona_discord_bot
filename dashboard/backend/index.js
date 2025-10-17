@@ -20,6 +20,43 @@ app.use(
 
 app.use(express.json());
 
+// Function to extract domain from URL
+function getDomainFromUrl(url) {
+  try {
+    const hostname = new URL(url).hostname;
+    // Extract base domain (e.g., "mindglowing.art" from "airona.mindglowing.art")
+    const parts = hostname.split(".");
+    if (parts.length >= 2) {
+      return `.${parts.slice(-2).join(".")}`; // Returns ".mindglowing.art"
+    }
+    return hostname;
+  } catch (err) {
+    console.error("Error parsing domain:", err);
+    return undefined;
+  }
+}
+
+const sessionDomain = getDomainFromUrl(
+  process.env.DOMAIN || process.env.FRONTEND_URL
+);
+
+console.log("Session cookie domain:", sessionDomain);
+
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET || "supersecret",
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: {
+//       secure: process.env.NODE_ENV === "production",
+//       httpOnly: true,
+//       maxAge: 24 * 60 * 60 * 1000,
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+//       domain: sessionDomain // Dynamically set domain
+//     }
+//   })
+// );
+
 // Session configuration
 app.use(
   session({
@@ -27,17 +64,21 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // true if HTTPS
+      secure: false, // Must be false for development (true only for HTTPS in production)
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Important for cross-origin cookies
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: "lax",
+      domain: sessionDomain, // Share cookie across subdomains
     },
   })
 );
 
+// MongoDB connection
+const mongodb_URI = require("./mongodb/URI");
+
 // MongoDB
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(mongodb_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(console.error);
 
