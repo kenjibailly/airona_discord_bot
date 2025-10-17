@@ -1,0 +1,78 @@
+.settingsForm {
+  max-width: 800px;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #a19ed0;
+  font-size: 0.95rem;
+}
+
+.textarea,
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.textarea:focus,
+.input:focus {
+  outline: none;
+  border-color: #5865f2;
+}
+
+.hint {
+  display: block;
+  margin-top: 0.5rem;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.saveButton {
+  padding: 0.75rem 2rem;
+  background-color: #5865f2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.saveButton:hover:not(:disabled) {
+  background-color: #4752c4;
+}
+
+.saveButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.successMessage {
+  color: #43b581;
+  font-weight: 600;
+  font-size: 0.95rem;
+}

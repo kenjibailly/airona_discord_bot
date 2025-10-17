@@ -1,30 +1,18 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import Navbar from "../components/Navbar";
+import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
 
 export default function Dashboard() {
-  const [guilds, setGuilds] = useState([]);
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
+  const { user, guilds, loading } = useAuth();
 
-  useEffect(() => {
-    axios.get("/auth/session", { withCredentials: true })
-      .then(res => {
-        setGuilds(res.data.guilds || []);
-        setUser(res.data.user);
-      })
-      .catch(err => {
-        console.error(err);
-        navigate("/");
-      });
-  }, [navigate]);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className={styles.container}>
       <Navbar user={user} guilds={guilds} />
-      
+     
       <div style={{ padding: "2rem" }}>
         <h1>Welcome to your Dashboard!</h1>
         {guilds.length > 0 ? (
@@ -39,7 +27,7 @@ export default function Dashboard() {
             </ul>
             <p>
               <a
-                href={`https://discord.com/api/oauth2/authorize?client_id=${import.meta.env.DISCORD_CLIENT_ID}&permissions=8&scope=bot`}
+                href={`https://discord.com/api/oauth2/authorize?client_id=${import.meta.env.VITE_DISCORD_CLIENT_ID}&permissions=8&scope=bot`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
