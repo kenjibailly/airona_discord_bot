@@ -10,12 +10,13 @@
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #a19ed0;
+  color: #333;
   font-size: 0.95rem;
 }
 
 .textarea,
-.input {
+.input,
+.select {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
@@ -30,8 +31,14 @@
   min-height: 120px;
 }
 
+.select {
+  cursor: pointer;
+  background-color: white;
+}
+
 .textarea:focus,
-.input:focus {
+.input:focus,
+.select:focus {
   outline: none;
   border-color: #5865f2;
 }
@@ -41,6 +48,23 @@
   margin-top: 0.5rem;
   color: #666;
   font-size: 0.85rem;
+}
+
+.preview {
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.rolePreview {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .buttonGroup {

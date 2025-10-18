@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import WelcomeSettings from "../components/modules/WelcomeSettings";
+import AutoRoleSettings from "../components/modules/AutoRoleSettings";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
 
@@ -15,19 +16,8 @@ export default function ModuleSettings() {
       case "welcome":
         return <WelcomeSettings guildId={guildId} />;
       
-      case "moderation":
-        return (
-          <div>
-            <p>Moderation settings coming soon...</p>
-          </div>
-        );
-      
-      case "leveling":
-        return (
-          <div>
-            <p>Leveling settings coming soon...</p>
-          </div>
-        );
+      case "autorole":
+        return <AutoRoleSettings guildId={guildId} />;
       
       default:
         return (
@@ -42,7 +32,7 @@ export default function ModuleSettings() {
   const getModuleTitle = () => {
     const titles = {
       welcome: "Welcome Messages",
-      moderation: "Auto Moderation",
+      autorole: "Auto Role",
       leveling: "Leveling System"
     };
     return titles[moduleId] || moduleId;

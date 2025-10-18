@@ -41,15 +41,10 @@ router.get(
           description: "Send customized welcome messages when new members join",
         },
         {
-          id: "moderation",
-          title: "Auto Moderation",
+          id: "autorole",
+          title: "Auto Role",
           description:
-            "Automatically moderate messages based on configurable rules",
-        },
-        {
-          id: "leveling",
-          title: "Leveling System",
-          description: "Track member activity and award levels and roles",
+            "Automatically assign a role to new members when they join",
         },
       ];
 
@@ -207,6 +202,93 @@ router.put(
     } catch (err) {
       console.error("Error updating module settings:", err);
       res.status(500).json({ error: "Failed to update settings" });
+    }
+  }
+);
+
+const axios = require("axios");
+
+// Add this route after your existing routes
+router.get(
+  "/:guildId/channels",
+  requireAuth,
+  checkGuildPermission,
+  async (req, res) => {
+    const { guildId } = req.params;
+
+    try {
+      // Fetch channels from Discord API
+      const response = await axios.get(
+        `https://discord.com/api/v10/guilds/${guildId}/channels`,
+        {
+          headers: {
+            Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+          },
+        }
+      );
+
+      // Filter to only text channels (type 0) and announcement channels (type 5)
+      const textChannels = response.data
+        .filter((channel) => channel.type === 0 || channel.type === 5)
+        .map((channel) => ({
+          id: channel.id,
+          name: channel.name,
+          type: channel.type,
+          position: channel.position,
+        }))
+        .sort((a, b) => a.position - b.position); // Sort by position
+
+      console.log(
+        `Fetched ${textChannels.length} text channels for guild ${guildId}`
+      );
+
+      res.json({ channels: textChannels });
+    } catch (err) {
+      console.error("Error fetching guild channels:", err);
+      res.status(500).json({ error: "Failed to fetch guild channels" });
+    }
+  }
+);
+
+router.get(
+  "/:guildId/roles",
+  requireAuth,
+  checkGuildPermission,
+  async (req, res) => {
+    const { guildId } = req.params;
+
+    try {
+      // Fetch roles from Discord API
+      const response = await axios.get(
+        `https://discord.com/api/v10/guilds/${guildId}/roles`,
+        {
+          headers: {
+            Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+          },
+        }
+      );
+
+      // Filter out @everyone role and sort by position (highest first)
+      const roles = response.data
+        .filter((role) => role.name !== "@everyone")
+        .map((role) => ({
+          id: role.id,
+          name: role.name,
+          color: role.color,
+          position: role.position,
+          managed: role.managed, // Managed roles (like bot roles) can't be assigned
+        }))
+        .sort((a, b) => b.position - a.position);
+
+      console.log(`Fetched ${roles.length} roles for guild ${guildId}`);
+
+      res.json({ roles });
+    } catch (err) {
+      console.error(
+        "Error fetching guild roles:",
+        err.response?.data || err.message
+      );
+      res.status(500).json({ error: "Failed to fetch guild roles" });
     }
   }
 );

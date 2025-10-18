@@ -16,6 +16,7 @@ global.logger = new Logger("Bot");
 
 // MongoDB connection
 const mongodb_URI = require("./mongodb/URI");
+const memberJoinsGuild = require("./member_joins_guild.js");
 mongoose
   .connect(mongodb_URI)
   .then(() => logger.success("DB connected!"))
@@ -56,7 +57,6 @@ for (const file of commandFiles) {
 // Command interaction handling
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
-
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
@@ -81,9 +81,12 @@ client.on("guildCreate", async (guild) => {
   botJoinsGuild(client, guild);
 });
 
+// Member join - Auto Role & Welcome Message
+client.on("guildMemberAdd", async (member) => {
+  const guildId = member.guild.id;
+
+  memberJoinsGuild(member, guildId);
+});
+
 // Login Discord
 client.login(process.env.DISCORD_TOKEN);
-
-// -------------------
-// Dashboard Setup
-// -------------------

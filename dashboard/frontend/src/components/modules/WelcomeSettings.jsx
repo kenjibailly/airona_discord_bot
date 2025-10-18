@@ -5,14 +5,16 @@ import styles from "../../styles/ModuleSettings.module.css";
 export default function WelcomeSettings({ guildId }) {
   const [settings, setSettings] = useState({
     welcomeMessage: "",
-    channel: "",
+    channelId: "",
   });
+  const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     fetchSettings();
+    fetchChannels();
   }, [guildId]);
 
   const fetchSettings = async () => {
@@ -24,9 +26,21 @@ export default function WelcomeSettings({ guildId }) {
       if (response.data.settings && response.data.settings.welcomeMessage) {
         setSettings(response.data.settings);
       }
-      setLoading(false);
     } catch (err) {
       console.error("Failed to fetch welcome settings:", err);
+    }
+  };
+
+  const fetchChannels = async () => {
+    try {
+      const response = await axios.get(`/guilds/${guildId}/channels`, {
+        withCredentials: true
+      });
+      
+      setChannels(response.data.channels || []);
+      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch channels:", err);
       setLoading(false);
     }
   };
@@ -84,20 +98,25 @@ export default function WelcomeSettings({ guildId }) {
       </div>
 
       <div className={styles.formGroup}>
-        <label htmlFor="channel" className={styles.label}>
-          Welcome Channel ID
+        <label htmlFor="channelId" className={styles.label}>
+          Welcome Channel
         </label>
-        <input
-          id="channel"
-          name="channel"
-          type="text"
-          value={settings.channel}
+        <select
+          id="channelId"
+          name="channelId"
+          value={settings.channelId}
           onChange={handleChange}
-          placeholder="Enter channel ID (e.g., 1234567890123456789)"
-          className={styles.input}
-        />
+          className={styles.select}
+        >
+          <option value="">Select a channel...</option>
+          {channels.map(channel => (
+            <option key={channel.id} value={channel.id}>
+              # {channel.name}
+            </option>
+          ))}
+        </select>
         <small className={styles.hint}>
-          Right-click a channel in Discord and select "Copy ID" (Developer Mode must be enabled)
+          Select the channel where welcome messages will be sent
         </small>
       </div>
 
