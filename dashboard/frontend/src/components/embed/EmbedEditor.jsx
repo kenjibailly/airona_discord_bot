@@ -1,18 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import EmojiPicker from "../EmojiPicker";
 import styles from "../../styles/EmbedEditor.module.css";
 
 export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState({});
   const [expandedSections, setExpandedSections] = useState({
-    embed: true,
-    author: false,
-    body: true,
-    fields: false,
-    images: false,
-    footer: false
+    'embed-0': true,
+    'author-0': false,
+    'body-0': true,
+    'fields-0': false,
+    'images-0': false,
+    'footer-0': false
   });
   const [showEmojiPicker, setShowEmojiPicker] = useState(null);
+  const [customEmojis, setCustomEmojis] = useState([]);
+
+  useEffect(() => {
+    fetchEmojis();
+  }, [guildId]);
+
+  const fetchEmojis = async () => {
+    try {
+      const response = await axios.get(`/guilds/${guildId}/emojis`, {
+        withCredentials: true
+      });
+      setCustomEmojis(response.data.emojis || []);
+    } catch (err) {
+      console.error("Failed to fetch emojis:", err);
+    }
+  };
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -21,10 +38,11 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
     }));
   };
 
-  const updateEmbed = (path, value) => {
+  const updateEmbedAtIndex = (embedIndex, path, value) => {
     setEmbedData(prev => {
       const newData = { ...prev };
-      const embed = { ...newData.embeds[0] };
+      const newEmbeds = [...newData.embeds];
+      const embed = { ...newEmbeds[embedIndex] };
       
       const keys = path.split('.');
       let current = embed;
@@ -35,10 +53,18 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
       }
       
       current[keys[keys.length - 1]] = value;
-      newData.embeds[0] = embed;
+      newEmbeds[embedIndex] = embed;
+      newData.embeds = newEmbeds;
       
       return newData;
     });
+  };
+
+  const removeEmbed = (embedIndex) => {
+    setEmbedData(prev => ({
+      ...prev,
+      embeds: prev.embeds.filter((_, i) => i !== embedIndex)
+    }));
   };
 
   const hexToDecimal = (hex) => {
@@ -46,48 +72,49 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
   };
 
   const decimalToHex = (decimal) => {
-    return '#' + decimal.toString(16).padStart(6, '0');
+    return '#' + (decimal || 0).toString(16).padStart(6, '0');
   };
 
-  const addField = () => {
-    const embed = embedData.embeds[0];
+  const addField = (embedIndex) => {
+    const embed = embedData.embeds[embedIndex];
     const newFields = [...(embed.fields || []), { name: "Field name", value: "Field value", inline: false }];
-    updateEmbed('fields', newFields);
+    updateEmbedAtIndex(embedIndex, 'fields', newFields);
   };
 
-  const removeField = (index) => {
-    const embed = embedData.embeds[0];
-    const newFields = embed.fields.filter((_, i) => i !== index);
-    updateEmbed('fields', newFields);
+  const removeField = (embedIndex, fieldIndex) => {
+    const embed = embedData.embeds[embedIndex];
+    const newFields = embed.fields.filter((_, i) => i !== fieldIndex);
+    updateEmbedAtIndex(embedIndex, 'fields', newFields);
   };
 
-  const updateField = (index, key, value) => {
-    const embed = embedData.embeds[0];
+  const updateField = (embedIndex, fieldIndex, key, value) => {
+    const embed = embedData.embeds[embedIndex];
     const newFields = [...embed.fields];
-    newFields[index] = { ...newFields[index], [key]: value };
-    updateEmbed('fields', newFields);
+    newFields[fieldIndex] = { ...newFields[fieldIndex], [key]: value };
+    updateEmbedAtIndex(embedIndex, 'fields', newFields);
   };
 
-  const addImageToGallery = () => {
-    const embed = embedData.embeds[0];
+  const addImageToGallery = (embedIndex) => {
+    const embed = embedData.embeds[embedIndex];
     const newImages = [...(embed.images || []), { url: "" }];
-    updateEmbed('images', newImages);
+    updateEmbedAtIndex(embedIndex, 'images', newImages);
   };
 
-  const removeImageFromGallery = (index) => {
-    const embed = embedData.embeds[0];
-    const newImages = embed.images.filter((_, i) => i !== index);
-    updateEmbed('images', newImages);
+  const removeImageFromGallery = (embedIndex, imageIndex) => {
+    const embed = embedData.embeds[embedIndex];
+    const newImages = embed.images.filter((_, i) => i !== imageIndex);
+    updateEmbedAtIndex(embedIndex, 'images', newImages);
   };
 
-  const updateGalleryImage = (index, value) => {
-    const embed = embedData.embeds[0];
+  const updateGalleryImage = (embedIndex, imageIndex, value) => {
+    const embed = embedData.embeds[embedIndex];
     const newImages = [...embed.images];
-    newImages[index] = { url: value };
-    updateEmbed('images', newImages);
+    newImages[imageIndex] = { url: value };
+    updateEmbedAtIndex(embedIndex, 'images', newImages);
   };
 
   const addEmbed = () => {
+    const newIndex = embedData.embeds.length;
     setEmbedData(prev => ({
       ...prev,
       embeds: [
@@ -106,6 +133,13 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
           timestamp: ""
         }
       ]
+    }));
+    
+    // Auto-expand the new embed
+    setExpandedSections(prev => ({
+      ...prev,
+      [`embed-${newIndex}`]: true,
+      [`body-${newIndex}`]: true
     }));
   };
 
@@ -152,8 +186,6 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
     });
   };
 
-  const embed = embedData.embeds[0];
-
   return (
     <div className={styles.editor}>
       {/* Content */}
@@ -167,309 +199,327 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
         />
       </div>
 
-      {/* Embed */}
-      <div className={styles.collapsible}>
-        <div className={styles.header} onClick={() => toggleSection('embed')}>
-          <span>{expandedSections.embed ? '▼' : '▶'} Embed</span>
-        </div>
-        
-        {expandedSections.embed && (
-          <div className={styles.content}>
-            {/* Author */}
-            <div className={styles.collapsible}>
-              <div className={styles.header} onClick={() => toggleSection('author')}>
-                <span>{expandedSections.author ? '▼' : '▶'} Author</span>
-              </div>
-              
-              {expandedSections.author && (
-                <div className={styles.content}>
-                  <div className={styles.fieldWithButton}>
-                    <div className={styles.field}>
-                      <label>Name <span className={styles.charCount}>{embed.author?.name?.length || 0}/256</span></label>
-                      <input
-                        type="text"
-                        value={embed.author?.name || ""}
-                        onChange={(e) => updateEmbed('author.name', e.target.value)}
-                        maxLength={256}
-                        placeholder="Author name"
-                      />
-                    </div>
-                    <button
-                      className={styles.addUrlButton}
-                      onClick={() => {
-                        const hasUrl = embed.author?.url;
-                        if (!hasUrl) {
-                          updateEmbed('author.url', 'https://');
-                        } else {
-                          updateEmbed('author.url', '');
-                        }
-                      }}
-                    >
-                      {embed.author?.url ? '✕' : '🔗'}
-                    </button>
-                  </div>
-
-                  {embed.author?.url && (
-                    <div className={styles.field}>
-                      <label>Author URL</label>
-                      <input
-                        type="url"
-                        value={embed.author.url}
-                        onChange={(e) => updateEmbed('author.url', e.target.value)}
-                        placeholder="https://example.com"
-                      />
-                    </div>
-                  )}
-
-                  <div className={styles.field}>
-                    <label>Icon URL</label>
-                    <input
-                      type="url"
-                      value={embed.author?.icon_url || ""}
-                      onChange={(e) => updateEmbed('author.icon_url', e.target.value)}
-                      placeholder="https://example.com/icon.png"
-                    />
-                  </div>
+      {/* Embeds */}
+      {embedData.embeds.map((embed, embedIndex) => (
+        <div key={embedIndex} className={styles.collapsible}>
+          <div className={styles.header}>
+            <span onClick={() => toggleSection(`embed-${embedIndex}`)}>
+              {expandedSections[`embed-${embedIndex}`] !== false ? '▼' : '▶'} Embed {embedIndex + 1}
+            </span>
+            {embedData.embeds.length > 1 && (
+              <button
+                className={styles.trashButton}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeEmbed(embedIndex);
+                }}
+              >
+                🗑️
+              </button>
+            )}
+          </div>
+          
+          {expandedSections[`embed-${embedIndex}`] !== false && (
+            <div className={styles.content}>
+              {/* Author */}
+              <div className={styles.collapsible}>
+                <div className={styles.header} onClick={() => toggleSection(`author-${embedIndex}`)}>
+                  <span>{expandedSections[`author-${embedIndex}`] ? '▼' : '▶'} Author</span>
                 </div>
-              )}
-            </div>
-
-            {/* Body */}
-            <div className={styles.collapsible}>
-              <div className={styles.header} onClick={() => toggleSection('body')}>
-                <span>{expandedSections.body ? '▼' : '▶'} Body</span>
-              </div>
-              
-              {expandedSections.body && (
-                <div className={styles.content}>
-                  <div className={styles.fieldWithButton}>
-                    <div className={styles.field}>
-                      <label>Title <span className={styles.charCount}>{embed.title?.length || 0}/256</span></label>
-                      <input
-                        type="text"
-                        value={embed.title || ""}
-                        onChange={(e) => updateEmbed('title', e.target.value)}
-                        maxLength={256}
-                        placeholder="Embed title"
-                      />
-                    </div>
-                    <button
-                      className={styles.addUrlButton}
-                      onClick={() => {
-                        const hasUrl = embed.url;
-                        if (!hasUrl) {
-                          updateEmbed('url', 'https://');
-                        } else {
-                          updateEmbed('url', '');
-                        }
-                      }}
-                    >
-                      {embed.url ? '✕' : '🔗'}
-                    </button>
-                  </div>
-
-                  {embed.url && (
-                    <div className={styles.field}>
-                      <label>Title URL</label>
-                      <input
-                        type="url"
-                        value={embed.url}
-                        onChange={(e) => updateEmbed('url', e.target.value)}
-                        placeholder="https://example.com"
-                      />
-                    </div>
-                  )}
-
-                  <div className={styles.fieldWithButton}>
-                    <div className={styles.field}>
-                      <label>Sidebar Color</label>
-                      <input
-                        type="text"
-                        value={decimalToHex(embed.color || 0)}
-                        onChange={(e) => {
-                          const hex = e.target.value;
-                          if (/^#[0-9A-F]{6}$/i.test(hex)) {
-                            updateEmbed('color', hexToDecimal(hex));
+                
+                {expandedSections[`author-${embedIndex}`] && (
+                  <div className={styles.content}>
+                    <div className={styles.fieldWithButton}>
+                      <div className={styles.field}>
+                        <label>Name <span className={styles.charCount}>{embed.author?.name?.length || 0}/256</span></label>
+                        <input
+                          type="text"
+                          value={embed.author?.name || ""}
+                          onChange={(e) => updateEmbedAtIndex(embedIndex, 'author.name', e.target.value)}
+                          maxLength={256}
+                          placeholder="Author name"
+                        />
+                      </div>
+                      <button
+                        className={styles.addUrlButton}
+                        onClick={() => {
+                          const hasUrl = embed.author?.url;
+                          if (!hasUrl) {
+                            updateEmbedAtIndex(embedIndex, 'author.url', 'https://');
+                          } else {
+                            updateEmbedAtIndex(embedIndex, 'author.url', '');
                           }
                         }}
-                        placeholder="#58b9ff"
+                      >
+                        {embed.author?.url ? '✕' : '🔗'}
+                      </button>
+                    </div>
+
+                    {embed.author?.url && (
+                      <div className={styles.field}>
+                        <label>Author URL</label>
+                        <input
+                          type="url"
+                          value={embed.author.url}
+                          onChange={(e) => updateEmbedAtIndex(embedIndex, 'author.url', e.target.value)}
+                          placeholder="https://example.com"
+                        />
+                      </div>
+                    )}
+
+                    <div className={styles.field}>
+                      <label>Icon URL</label>
+                      <input
+                        type="url"
+                        value={embed.author?.icon_url || ""}
+                        onChange={(e) => updateEmbedAtIndex(embedIndex, 'author.icon_url', e.target.value)}
+                        placeholder="https://example.com/icon.png"
                       />
                     </div>
-                    <button
-                      className={styles.colorPickerButton}
-                      onClick={() => setShowColorPicker(!showColorPicker)}
-                    >
-                      🎨
-                    </button>
                   </div>
-
-                  {showColorPicker && (
-                    <input
-                      type="color"
-                      value={decimalToHex(embed.color || 0)}
-                      onChange={(e) => updateEmbed('color', hexToDecimal(e.target.value))}
-                      className={styles.colorPicker}
-                    />
-                  )}
-
-                  <div className={styles.field}>
-                    <label>Description <span className={styles.charCount}>{embed.description?.length || 0}/4096</span></label>
-                    <textarea
-                      value={embed.description || ""}
-                      onChange={(e) => updateEmbed('description', e.target.value)}
-                      maxLength={4096}
-                      rows={6}
-                      placeholder="Embed description"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Fields */}
-            <div className={styles.collapsible}>
-              <div className={styles.header} onClick={() => toggleSection('fields')}>
-                <span>{expandedSections.fields ? '▼' : '▶'} Fields</span>
+                )}
               </div>
-              
-              {expandedSections.fields && (
-                <div className={styles.content}>
-                  {(embed.fields || []).map((field, index) => (
-                    <div key={index} className={styles.collapsible}>
-                      <div className={styles.header}>
-                        <span>Field {index + 1}</span>
-                        <button
-                          className={styles.trashButton}
-                          onClick={() => removeField(index)}
-                        >
-                          🗑️
-                        </button>
+
+              {/* Body */}
+              <div className={styles.collapsible}>
+                <div className={styles.header} onClick={() => toggleSection(`body-${embedIndex}`)}>
+                  <span>{expandedSections[`body-${embedIndex}`] ? '▼' : '▶'} Body</span>
+                </div>
+                
+                {expandedSections[`body-${embedIndex}`] && (
+                  <div className={styles.content}>
+                    <div className={styles.fieldWithButton}>
+                      <div className={styles.field}>
+                        <label>Title <span className={styles.charCount}>{embed.title?.length || 0}/256</span></label>
+                        <input
+                          type="text"
+                          value={embed.title || ""}
+                          onChange={(e) => updateEmbedAtIndex(embedIndex, 'title', e.target.value)}
+                          maxLength={256}
+                          placeholder="Embed title"
+                        />
                       </div>
-                      <div className={styles.content}>
-                        <div className={styles.fieldWithCheckbox}>
+                      <button
+                        className={styles.addUrlButton}
+                        onClick={() => {
+                          const hasUrl = embed.url;
+                          if (!hasUrl) {
+                            updateEmbedAtIndex(embedIndex, 'url', 'https://');
+                          } else {
+                            updateEmbedAtIndex(embedIndex, 'url', '');
+                          }
+                        }}
+                      >
+                        {embed.url ? '✕' : '🔗'}
+                      </button>
+                    </div>
+
+                    {embed.url && (
+                      <div className={styles.field}>
+                        <label>Title URL</label>
+                        <input
+                          type="url"
+                          value={embed.url}
+                          onChange={(e) => updateEmbedAtIndex(embedIndex, 'url', e.target.value)}
+                          placeholder="https://example.com"
+                        />
+                      </div>
+                    )}
+
+                    <div className={styles.fieldWithButton}>
+                      <div className={styles.field}>
+                        <label>Sidebar Color</label>
+                        <input
+                          type="text"
+                          value={decimalToHex(embed.color || 0)}
+                          onChange={(e) => {
+                            const hex = e.target.value;
+                            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                              updateEmbedAtIndex(embedIndex, 'color', hexToDecimal(hex));
+                            }
+                          }}
+                          placeholder="#58b9ff"
+                        />
+                      </div>
+                      <button
+                        className={styles.colorPickerButton}
+                        onClick={() => setShowColorPicker(prev => ({ ...prev, [embedIndex]: !prev[embedIndex] }))}
+                      >
+                        🎨
+                      </button>
+                    </div>
+
+                    {showColorPicker[embedIndex] && (
+                      <input
+                        type="color"
+                        value={decimalToHex(embed.color || 0)}
+                        onChange={(e) => updateEmbedAtIndex(embedIndex, 'color', hexToDecimal(e.target.value))}
+                        className={styles.colorPicker}
+                      />
+                    )}
+
+                    <div className={styles.field}>
+                      <label>Description <span className={styles.charCount}>{embed.description?.length || 0}/4096</span></label>
+                      <textarea
+                        value={embed.description || ""}
+                        onChange={(e) => updateEmbedAtIndex(embedIndex, 'description', e.target.value)}
+                        maxLength={4096}
+                        rows={6}
+                        placeholder="Embed description"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Fields */}
+              <div className={styles.collapsible}>
+                <div className={styles.header} onClick={() => toggleSection(`fields-${embedIndex}`)}>
+                  <span>{expandedSections[`fields-${embedIndex}`] ? '▼' : '▶'} Fields</span>
+                </div>
+                
+                {expandedSections[`fields-${embedIndex}`] && (
+                  <div className={styles.content}>
+                    {(embed.fields || []).map((field, fieldIndex) => (
+                      <div key={fieldIndex} className={styles.collapsible}>
+                        <div className={styles.header}>
+                          <span>Field {fieldIndex + 1}</span>
+                          <button
+                            className={styles.trashButton}
+                            onClick={() => removeField(embedIndex, fieldIndex)}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                        <div className={styles.content}>
+                          <div className={styles.fieldWithCheckbox}>
+                            <div className={styles.field}>
+                              <label>Name <span className={styles.charCount}>{field.name?.length || 0}/256</span></label>
+                              <input
+                                type="text"
+                                value={field.name}
+                                onChange={(e) => updateField(embedIndex, fieldIndex, 'name', e.target.value)}
+                                maxLength={256}
+                                placeholder="Field name"
+                              />
+                            </div>
+                            <label className={styles.inlineCheckbox}>
+                              <input
+                                type="checkbox"
+                                checked={field.inline || false}
+                                onChange={(e) => updateField(embedIndex, fieldIndex, 'inline', e.target.checked)}
+                              />
+                              Inline
+                            </label>
+                          </div>
+
                           <div className={styles.field}>
-                            <label>Name <span className={styles.charCount}>{field.name?.length || 0}/256</span></label>
-                            <input
-                              type="text"
-                              value={field.name}
-                              onChange={(e) => updateField(index, 'name', e.target.value)}
-                              maxLength={256}
-                              placeholder="Field name"
+                            <label>Value <span className={styles.charCount}>{field.value?.length || 0}/1024</span></label>
+                            <textarea
+                              value={field.value}
+                              onChange={(e) => updateField(embedIndex, fieldIndex, 'value', e.target.value)}
+                              maxLength={1024}
+                              rows={3}
+                              placeholder="Field value"
                             />
                           </div>
-                          <label className={styles.inlineCheckbox}>
-                            <input
-                              type="checkbox"
-                              checked={field.inline || false}
-                              onChange={(e) => updateField(index, 'inline', e.target.checked)}
-                            />
-                            Inline
-                          </label>
-                        </div>
-
-                        <div className={styles.field}>
-                          <label>Value <span className={styles.charCount}>{field.value?.length || 0}/1024</span></label>
-                          <textarea
-                            value={field.value}
-                            onChange={(e) => updateField(index, 'value', e.target.value)}
-                            maxLength={1024}
-                            rows={3}
-                            placeholder="Field value"
-                          />
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
 
-                  <button className={styles.addButton} onClick={addField}>
-                    + Add Field
-                  </button>
-                </div>
-              )}
-            </div>
+                    <button className={styles.addButton} onClick={() => addField(embedIndex)}>
+                      + Add Field
+                    </button>
+                  </div>
+                )}
+              </div>
 
             {/* Images */}
             <div className={styles.collapsible}>
-                <div className={styles.header} onClick={() => toggleSection('images')}>
-                    <span>{expandedSections.images ? '▼' : '▶'} Images</span>
+            <div className={styles.header} onClick={() => toggleSection('images')}>
+                <span>{expandedSections.images ? '▼' : '▶'} Images</span>
+            </div>
+            
+            {expandedSections.images && (
+                <div className={styles.content}>
+                <div className={styles.field}>
+                    <label>Image URL</label>
+                    <input
+                    type="url"
+                    value={embed.image?.url || ""}
+                    onChange={(e) => updateEmbed('image.url', e.target.value)}
+                    placeholder="https://example.com/image.png"
+                    />
+                    <small>Single large image displayed in the embed</small>
+                </div>
+
+                <div className={styles.field}>
+                    <label>Thumbnail URL</label>
+                    <input
+                    type="url"
+                    value={embed.thumbnail?.url || ""}
+                    onChange={(e) => updateEmbed('thumbnail.url', e.target.value)}
+                    placeholder="https://example.com/thumbnail.png"
+                    />
+                    <small>Small image displayed in the top right corner</small>
+                </div>
+                </div>
+            )}
+            </div>
+
+              {/* Footer */}
+              <div className={styles.collapsible}>
+                <div className={styles.header} onClick={() => toggleSection(`footer-${embedIndex}`)}>
+                  <span>{expandedSections[`footer-${embedIndex}`] ? '▼' : '▶'} Footer</span>
                 </div>
                 
-                {expandedSections.images && (
-                    <div className={styles.content}>
+                {expandedSections[`footer-${embedIndex}`] && (
+                  <div className={styles.content}>
                     <div className={styles.field}>
-                        <label>Image URL</label>
-                        <input
-                        type="url"
-                        value={embed.image?.url || ""}
-                        onChange={(e) => updateEmbed('image.url', e.target.value)}
-                        placeholder="https://example.com/image.png"
-                        />
-                        <small>Single large image displayed in the embed</small>
+                      <label>Text <span className={styles.charCount}>{embed.footer?.text?.length || 0}/2048</span></label>
+                      <textarea
+                        value={embed.footer?.text || ""}
+                        onChange={(e) => updateEmbedAtIndex(embedIndex, 'footer.text', e.target.value)}
+                        maxLength={2048}
+                        rows={3}
+                        placeholder="Footer text"
+                      />
                     </div>
 
                     <div className={styles.field}>
-                        <label>Thumbnail URL</label>
-                        <input
+                      <label>Icon URL</label>
+                      <input
                         type="url"
-                        value={embed.thumbnail?.url || ""}
-                        onChange={(e) => updateEmbed('thumbnail.url', e.target.value)}
-                        placeholder="https://example.com/thumbnail.png"
-                        />
-                        <small>Small image displayed in the top right corner</small>
+                        value={embed.footer?.icon_url || ""}
+                        onChange={(e) => updateEmbedAtIndex(embedIndex, 'footer.icon_url', e.target.value)}
+                        placeholder="https://example.com/icon.png"
+                      />
                     </div>
-                    </div>
-                )}
-            </div>
 
-            {/* Footer */}
-            <div className={styles.collapsible}>
-              <div className={styles.header} onClick={() => toggleSection('footer')}>
-                <span>{expandedSections.footer ? '▼' : '▶'} Footer</span>
-              </div>
-              
-              {expandedSections.footer && (
-                <div className={styles.content}>
-                  <div className={styles.field}>
-                    <label>Text <span className={styles.charCount}>{embed.footer?.text?.length || 0}/2048</span></label>
-                    <textarea
-                      value={embed.footer?.text || ""}
-                      onChange={(e) => updateEmbed('footer.text', e.target.value)}
-                      maxLength={2048}
-                      rows={3}
-                      placeholder="Footer text"
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label>Icon URL</label>
-                    <input
-                      type="url"
-                      value={embed.footer?.icon_url || ""}
-                      onChange={(e) => updateEmbed('footer.icon_url', e.target.value)}
-                      placeholder="https://example.com/icon.png"
-                    />
-                  </div>
-
-                  <div className={styles.field}>
+                    <div className={styles.field}>
                     <label>Timestamp</label>
                     <input
-                      type="datetime-local"
-                      value={embed.timestamp ? new Date(embed.timestamp).toISOString().slice(0, 16) : ""}
-                      onChange={(e) => {
+                        type="datetime-local"
+                        value={embed.timestamp ? new Date(new Date(embed.timestamp).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""}
+                        onChange={(e) => {
                         if (e.target.value) {
-                          updateEmbed('timestamp', new Date(e.target.value).toISOString());
+                            // Convert local time to UTC
+                            const localDate = new Date(e.target.value);
+                            updateEmbedAtIndex(embedIndex, 'timestamp', localDate.toISOString());
                         } else {
-                          updateEmbed('timestamp', '');
+                            updateEmbedAtIndex(embedIndex, 'timestamp', '');
                         }
-                      }}
+                        }}
                     />
+                    <small>Time will be displayed in viewer's local timezone</small>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      ))}
 
       {/* Add Menu */}
       <div className={styles.addMenu}>
@@ -529,7 +579,7 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
                 
                 {showEmojiPicker === `${rowIndex}-${buttonIndex}` && (
                   <EmojiPicker
-                    customEmojis={[]}
+                    customEmojis={customEmojis}
                     onSelect={(emoji) => {
                       if (emoji.id) {
                         updateButton(rowIndex, buttonIndex, 'emoji', { id: emoji.id, name: emoji.name });

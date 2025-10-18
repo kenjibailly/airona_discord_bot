@@ -89,29 +89,27 @@ export default function EmbedPreview({ embedData }) {
                 ))}
               </div>
             )}
-
             {/* Large Image */}
             {embed.image?.url && (
-                <div className={styles.embedImage}>
-                    <img 
-                    src={embed.image.url} 
-                    alt="Embed"
-                    onError={(e) => e.target.style.display = 'none'}
-                    />
-                </div>
-                )}
-
-                {/* Thumbnail */}
-                {embed.thumbnail?.url && (
-                <div className={styles.embedThumbnail}>
-                    <img 
-                    src={embed.thumbnail.url} 
-                    alt="Thumbnail"
-                    onError={(e) => e.target.style.display = 'none'}
-                    />
-                </div>
+            <div className={styles.embedImage}>
+                <img 
+                src={embed.image.url} 
+                alt="Embed"
+                onError={(e) => e.target.style.display = 'none'}
+                />
+            </div>
             )}
 
+            {/* Thumbnail */}
+            {embed.thumbnail?.url && (
+            <div className={styles.embedThumbnail}>
+                <img 
+                src={embed.thumbnail.url} 
+                alt="Thumbnail"
+                onError={(e) => e.target.style.display = 'none'}
+                />
+            </div>
+            )}
             {/* Footer */}
             {(embed.footer?.text || embed.timestamp) && (
               <div className={styles.embedFooter}>
