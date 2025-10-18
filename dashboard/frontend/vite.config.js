@@ -17,7 +17,6 @@ export default defineConfig({
         changeOrigin: true,
       },
       "/guilds": {
-        // Add this
         target: "http://localhost:8080",
         changeOrigin: true,
       },

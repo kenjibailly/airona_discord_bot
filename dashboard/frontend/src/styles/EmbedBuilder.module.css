@@ -1,0 +1,109 @@
+.controls {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border: 1px solid #e0e0e0;
+}
+
+.controlGroup {
+  margin-bottom: 1rem;
+}
+
+.controlGroup:last-child {
+  margin-bottom: 0;
+}
+
+.controlGroup label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.controlGroup select,
+.controlGroup input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.loadMessage {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.loadMessage input {
+  flex: 1;
+}
+
+.loadMessage button {
+  padding: 0.75rem 1.5rem;
+  background: #5865f2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.loadMessage button:hover {
+  background: #4752c4;
+}
+
+.sendButton {
+  width: 100%;
+  padding: 1rem;
+  background: #43b581;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.sendButton:hover {
+  background: #3ca374;
+}
+
+.builderContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.editorPanel {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.previewPanel {
+  position: sticky;
+  top: 2rem;
+  background: #36393f;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.previewPanel h3 {
+  color: white;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .builderContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .previewPanel {
+    position: static;
+  }
+}

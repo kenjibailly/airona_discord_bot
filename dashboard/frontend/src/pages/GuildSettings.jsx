@@ -97,14 +97,32 @@ export default function GuildSettings() {
             />
           )}
           <h1>{guild.name} Settings</h1>
-        </div>
-       
-        <h2 style={{ marginBottom: "1rem" }}>Modules</h2>
-        
+        </div>        
         {modulesLoading ? (
           <div>Loading modules...</div>
         ) : (
           <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "2rem" }}>
+  </div>
+
+  {/* Add Embed Builder Button */}
+  <button
+    onClick={() => navigate(`/guild/${guildId}/embed-builder`)}
+    style={{
+      padding: "0.75rem 1.5rem",
+      background: "#5865f2",
+      color: "white",
+      border: "none",
+      borderRadius: "6px",
+      fontWeight: "600",
+      cursor: "pointer",
+      marginBottom: "2rem"
+    }}
+  >
+    📝 Embed Builder
+  </button>
+ 
+  <h2 style={{ marginBottom: "1rem" }}>Modules</h2>
             {modules.map(module => (
               <ModuleCard
                 key={module.id}

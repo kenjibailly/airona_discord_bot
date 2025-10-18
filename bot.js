@@ -10,13 +10,11 @@ const fs = require("fs");
 const path = require("path");
 
 // Utilities
-const botJoinsGuild = require("./bot_joins_guild");
 const Logger = require("./utilities/logger.js");
 global.logger = new Logger("Bot");
 
 // MongoDB connection
 const mongodb_URI = require("./mongodb/URI");
-const memberJoinsGuild = require("./member_joins_guild.js");
 mongoose
   .connect(mongodb_URI)
   .then(() => logger.success("DB connected!"))
@@ -32,8 +30,9 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessagePolls,
     GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMessageReactions,
   ],
-  partials: [Partials.Channel],
+  partials: [Partials.Channel, Partials.Message, Partials.Reaction],
 });
 
 // Load commands
@@ -54,39 +53,21 @@ for (const file of commandFiles) {
   }
 }
 
-// Command interaction handling
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  const command = client.commands.get(interaction.commandName);
-  if (!command) return;
+// Load events
+const eventsPath = path.join(__dirname, "events");
+const eventFiles = fs
+  .readdirSync(eventsPath)
+  .filter((file) => file.endsWith(".js"));
 
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    logger.error(error);
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
+for (const file of eventFiles) {
+  const event = require(path.join(eventsPath, file));
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args));
   }
-});
-
-// Bot ready
-client.once("clientReady", () => {
-  logger.success(`Logged in as ${client.user.tag}!`);
-});
-
-// Guild join
-client.on("guildCreate", async (guild) => {
-  botJoinsGuild(client, guild);
-});
-
-// Member join - Auto Role & Welcome Message
-client.on("guildMemberAdd", async (member) => {
-  const guildId = member.guild.id;
-
-  memberJoinsGuild(member, guildId);
-});
+  logger.success(`Loaded event: ${event.name}`);
+}
 
 // Login Discord
 client.login(process.env.DISCORD_TOKEN);

@@ -10,6 +10,10 @@ const guildRoutes = require("./routes/guilds");
 const app = express();
 const PORT = process.env.DASHBOARD_PORT || 8080;
 
+// Utilities
+const Logger = require("./utilities/logger.js");
+global.logger = new Logger("Bot");
+
 // CORS - must come before routes
 app.use(
   cors({

@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import WelcomeSettings from "../components/modules/WelcomeSettings";
 import AutoRoleSettings from "../components/modules/AutoRoleSettings";
+import ReactionRolesSettings from "../components/modules/ReactionRolesSettings";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
 
@@ -19,6 +20,16 @@ export default function ModuleSettings() {
       case "autorole":
         return <AutoRoleSettings guildId={guildId} />;
       
+      case "reactionroles":
+        return <ReactionRolesSettings guildId={guildId} />;
+      
+      case "leveling":
+        return (
+          <div>
+            <p>Leveling settings coming soon...</p>
+          </div>
+        );
+      
       default:
         return (
           <div>
@@ -33,6 +44,7 @@ export default function ModuleSettings() {
     const titles = {
       welcome: "Welcome Messages",
       autorole: "Auto Role",
+      reactionroles: "Reaction Roles",
       leveling: "Leveling System"
     };
     return titles[moduleId] || moduleId;
