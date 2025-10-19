@@ -19,7 +19,11 @@
   background-color: #4b4372;
   border-radius: 5px;
   color: white;
-  border: 1px solid #7268a6;
+  border: 1px solid var(--purple-color);
   padding: 5px 10px;
   cursor: pointer;
+}
+
+.button:hover {
+  background: var(--purple-color2);
 }

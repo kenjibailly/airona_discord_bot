@@ -10,7 +10,7 @@
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: white;
   font-size: 0.95rem;
 }
 
@@ -18,10 +18,13 @@
 .section textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  padding-right: 0;
   border-radius: 6px;
   font-size: 0.95rem;
   font-family: inherit;
+  background-color: var(--tertiary-color);
+  border: none;
+  color: white;
 }
 
 .section textarea {
@@ -29,24 +32,21 @@
 }
 
 .collapsible {
-  border: 1px solid #e0e0e0;
+  background-color: var(--tertiary-color);
+  border: 3px solid #3a3f4d;
   border-radius: 6px;
   margin-bottom: 1rem;
 }
 
 .header {
   padding: 1rem;
-  background: #f5f5f5;
+  background: var(--secondary-color);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
   border-radius: 6px;
-}
-
-.header:hover {
-  background: #ebebeb;
 }
 
 .content {
@@ -66,7 +66,7 @@
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: white;
   font-size: 0.9rem;
 }
 
@@ -74,10 +74,14 @@
 .field textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  padding-right: 0;
+  border: none;
   border-radius: 6px;
   font-size: 0.95rem;
   font-family: inherit;
+  background-color: var(--secondary-color);
+  color: white;
+  box-sizing: border-box;
 }
 
 .field textarea {
@@ -108,19 +112,26 @@
 .addUrlButton,
 .colorPickerButton,
 .trashButton {
-  padding: 0.75rem 1rem;
-  background: #5865f2;
+  padding: 0.5rem 1rem;
+  background: var(--purple-color);
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
   min-width: 44px;
+  margin: auto;
+  margin-top: 28px;
+}
+
+.trashButton {
+  margin-right: 0;
+  margin-top: 0;
 }
 
 .addUrlButton:hover,
 .colorPickerButton:hover {
-  background: #4752c4;
+  background: var(--purple-color2);
 }
 
 .trashButton {
@@ -158,7 +169,7 @@
 .addButton {
   width: 100%;
   padding: 0.75rem;
-  background: #43b581;
+  background: var(--purple-color);
   color: white;
   border: none;
   border-radius: 6px;
@@ -168,11 +179,11 @@
 }
 
 .addButton:hover {
-  background: #3ca374;
+  background: var(--purple-color2);
 }
 
 .addMenu {
-  background: #f5f5f5;
+  background: var(--secondary-color);
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -181,13 +192,13 @@
 .menuLabel {
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: white;
 }
 
 .menuButton {
   width: 100%;
   padding: 0.75rem;
-  background: #5865f2;
+  background: var(--purple-color);
   color: white;
   border: none;
   border-radius: 6px;
@@ -197,21 +208,20 @@
 }
 
 .menuButton:hover {
-  background: #4752c4;
+  background: var(--purple-color2);
 }
 
 .componentRow {
   margin-bottom: 1rem;
   padding: 1rem;
-  background: #f9f9f9;
+  background: var(--secondary-color);
   border-radius: 6px;
 }
 
 .buttonComponent {
-  background: white;
+  background: var(--tertiary-color);
   padding: 1rem;
   border-radius: 6px;
-  border: 1px solid #e0e0e0;
   margin-bottom: 1rem;
 }
 
@@ -230,15 +240,12 @@
 .emojiButton {
   width: 100%;
   padding: 0.75rem;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  background: var(--secondary-color);
+  border: none;
+  color: white;
   border-radius: 6px;
   cursor: pointer;
   text-align: left;
-}
-
-.emojiButton:hover {
-  background: #ebebeb;
 }
 
 .secondaryButton {

@@ -1,9 +1,8 @@
 .controls {
-  background: white;
+  background: var(--secondary-color);
   padding: 1.5rem;
   border-radius: 8px;
   margin-bottom: 2rem;
-  border: 1px solid #e0e0e0;
 }
 
 .controlGroup {
@@ -18,16 +17,18 @@
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: white;
 }
 
 .controlGroup select,
 .controlGroup input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.95rem;
+  background-color: var(--tertiary-color);
+  border: none;
+  color: white;
 }
 
 .loadMessage {
@@ -41,9 +42,9 @@
 
 .loadMessage button {
   padding: 0.75rem 1.5rem;
-  background: #5865f2;
+  background-color: #4b4372;
+  border: 1px solid var(--purple-color);
   color: white;
-  border: none;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
@@ -51,13 +52,13 @@
 }
 
 .loadMessage button:hover {
-  background: #4752c4;
+  background: var(--purple-color2);
 }
 
 .sendButton {
   width: 100%;
   padding: 1rem;
-  background: #43b581;
+  background: var(--pink-color);
   color: white;
   border: none;
   border-radius: 6px;
@@ -68,7 +69,7 @@
 }
 
 .sendButton:hover {
-  background: #3ca374;
+  background: var(--pink-color2);
 }
 
 .builderContainer {
@@ -79,9 +80,8 @@
 }
 
 .editorPanel {
-  background: white;
+  background: var(--secondary-color);
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
 }
 
 .previewPanel {

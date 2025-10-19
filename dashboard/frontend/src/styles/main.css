@@ -1,5 +1,16 @@
+:root {
+  --main-color: #0e1015;
+  --secondary-color: #181a20;
+  --secondary-color2: #242731;
+  --tertiary-color: #2e323e;
+  --purple-color: #7268a6;
+  --purple-color2: rgb(140, 128, 200);
+  --pink-color: #ff0048;
+  --pink-color2: rgb(254, 39, 85);
+}
+
 body {
-  background-color: rgb(26, 24, 50);
+  background-color: var(--main-color);
   color: white;
   font-family: Arial, Helvetica, sans-serif;
 }
