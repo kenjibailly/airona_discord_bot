@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import WelcomeSettings from "../components/modules/WelcomeSettings";
 import AutoRoleSettings from "../components/modules/AutoRoleSettings";
 import ReactionRolesSettings from "../components/modules/ReactionRolesSettings";
+import WorldBossSettings from "../components/modules/WorldBossSettings";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
 
@@ -11,7 +12,6 @@ export default function ModuleSettings() {
   const navigate = useNavigate();
   const { user, guilds, loading } = useAuth();
 
-  // Render different settings component based on moduleId
   const renderModuleSettings = () => {
     switch(moduleId) {
       case "welcome":
@@ -22,6 +22,9 @@ export default function ModuleSettings() {
       
       case "reactionroles":
         return <ReactionRolesSettings guildId={guildId} />;
+      
+      case "worldboss":
+        return <WorldBossSettings guildId={guildId} />;
       
       case "leveling":
         return (
@@ -39,12 +42,12 @@ export default function ModuleSettings() {
     }
   };
 
-  // Get module title
   const getModuleTitle = () => {
     const titles = {
       welcome: "Welcome Messages",
       autorole: "Auto Role",
       reactionroles: "Reaction Roles",
+      worldboss: "World Boss Notifier",
       leveling: "Leveling System"
     };
     return titles[moduleId] || moduleId;

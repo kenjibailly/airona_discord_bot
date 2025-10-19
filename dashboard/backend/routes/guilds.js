@@ -41,18 +41,28 @@ router.get(
           id: "welcome",
           title: "Welcome Messages",
           description: "Send customized welcome messages when new members join",
+          category: "general",
         },
         {
           id: "autorole",
           title: "Auto Role",
           description:
             "Automatically assign a role to new members when they join",
+          category: "general",
         },
         {
           id: "reactionroles",
           title: "Reaction Roles",
           description:
             "Let members assign themselves roles by reacting to messages",
+          category: "general",
+        },
+        // Blue Protocol Modules
+        {
+          id: "worldboss",
+          title: "World Boss Notifier",
+          description: "Get notifications before world bosses spawn",
+          category: "blueprotocol",
         },
       ];
 
@@ -967,11 +977,9 @@ router.post(
         "Error sending message:",
         err.response?.data || err.message
       );
-      res
-        .status(500)
-        .json({
-          error: err.response?.data?.message || "Failed to send message",
-        });
+      res.status(500).json({
+        error: err.response?.data?.message || "Failed to send message",
+      });
     }
   }
 );
@@ -1075,11 +1083,9 @@ router.put(
         "Error editing message:",
         err.response?.data || err.message
       );
-      res
-        .status(500)
-        .json({
-          error: err.response?.data?.message || "Failed to edit message",
-        });
+      res.status(500).json({
+        error: err.response?.data?.message || "Failed to edit message",
+      });
     }
   }
 );

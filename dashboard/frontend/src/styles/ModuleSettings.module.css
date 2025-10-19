@@ -100,3 +100,27 @@
   font-weight: 600;
   font-size: 0.95rem;
 }
+
+.infoBox {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1.5rem 0;
+}
+
+.infoBox h4 {
+  margin: 0 0 0.5rem 0;
+  color: #1976d2;
+}
+
+.infoBox ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.infoBox li {
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}

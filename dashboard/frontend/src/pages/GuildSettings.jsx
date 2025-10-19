@@ -26,8 +26,6 @@ export default function GuildSettings() {
         if (hasManagePermission) {
           setGuild(foundGuild);
           setHasPermission(true);
-          
-          // Fetch modules from backend
           fetchModules();
         } else {
           alert("You don't have permission to manage this server");
@@ -58,9 +56,6 @@ export default function GuildSettings() {
         enabled: newState
       }, { withCredentials: true });
      
-      console.log(`Module ${moduleId} toggled to ${newState}`);
-     
-      // Update local state
       setModules(modules.map(m =>
         m.id === moduleId ? { ...m, enabled: newState } : m
       ));
@@ -74,6 +69,9 @@ export default function GuildSettings() {
     if (!guild || !guild.icon) return null;
     return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
   };
+
+  const generalModules = modules.filter(m => m.category === "general");
+  const blueProtocolModules = modules.filter(m => m.category === "blueprotocol");
 
   if (loading || !guild || !hasPermission) {
     return <div>Loading...</div>;
@@ -97,44 +95,60 @@ export default function GuildSettings() {
             />
           )}
           <h1>{guild.name} Settings</h1>
-        </div>        
+        </div>
+
+        <button
+          onClick={() => navigate(`/guild/${guildId}/embed-builder`)}
+          style={{
+            padding: "0.75rem 1.5rem",
+            background: "#5865f2",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            fontWeight: "600",
+            cursor: "pointer",
+            marginBottom: "2rem"
+          }}
+        >
+          📝 Embed Builder
+        </button>
+
         {modulesLoading ? (
           <div>Loading modules...</div>
         ) : (
-          <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "2rem" }}>
-  </div>
+          <>
+            {/* General Discord Modules */}
+            <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>General Modules</h2>
+            <div>
+              {generalModules.map(module => (
+                <ModuleCard
+                  key={module.id}
+                  moduleId={module.id}
+                  title={module.title}
+                  description={module.description}
+                  enabled={module.enabled}
+                  onToggle={(newState) => handleModuleToggle(module.id, newState)}
+                  guildId={guildId}
+                />
+              ))}
+            </div>
 
-  {/* Add Embed Builder Button */}
-  <button
-    onClick={() => navigate(`/guild/${guildId}/embed-builder`)}
-    style={{
-      padding: "0.75rem 1.5rem",
-      background: "#5865f2",
-      color: "white",
-      border: "none",
-      borderRadius: "6px",
-      fontWeight: "600",
-      cursor: "pointer",
-      marginBottom: "2rem"
-    }}
-  >
-    📝 Embed Builder
-  </button>
- 
-  <h2 style={{ marginBottom: "1rem" }}>Modules</h2>
-            {modules.map(module => (
-              <ModuleCard
-                key={module.id}
-                moduleId={module.id}
-                title={module.title}
-                description={module.description}
-                enabled={module.enabled}
-                onToggle={(newState) => handleModuleToggle(module.id, newState)}
-                guildId={guildId}
-              />
-            ))}
-          </div>
+            {/* Blue Protocol Modules */}
+            <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>Blue Protocol: Star Resonance</h2>
+            <div>
+              {blueProtocolModules.map(module => (
+                <ModuleCard
+                  key={module.id}
+                  moduleId={module.id}
+                  title={module.title}
+                  description={module.description}
+                  enabled={module.enabled}
+                  onToggle={(newState) => handleModuleToggle(module.id, newState)}
+                  guildId={guildId}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>
