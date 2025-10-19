@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import ModuleCard from "../components/ModuleCard";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
+import moduleCardStyles from "../styles/ModuleCard.module.css";
 
 export default function GuildSettings() {
   const { guildId } = useParams();
@@ -97,7 +98,7 @@ export default function GuildSettings() {
           <h1>{guild.name} Settings</h1>
         </div>
 
-        <button
+        {/* <button
           onClick={() => navigate(`/guild/${guildId}/embed-builder`)}
           style={{
             padding: "0.75rem 1.5rem",
@@ -111,7 +112,7 @@ export default function GuildSettings() {
           }}
         >
           📝 Embed Builder
-        </button>
+        </button> */}
 
         {modulesLoading ? (
           <div>Loading modules...</div>
@@ -119,7 +120,17 @@ export default function GuildSettings() {
           <>
             {/* General Discord Modules */}
             <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>General Modules</h2>
-            <div>
+            <div className={moduleCardStyles.cards}>
+              <a onClick={() => navigate(`/guild/${guildId}/embed-builder`)}>
+                <div className={moduleCardStyles.card}>
+                  <div className={moduleCardStyles.content}>
+                    <div className={moduleCardStyles.info}>
+                      <h3 className={moduleCardStyles.title}>Embed Builder</h3>
+                      <p className={moduleCardStyles.description}>Create your own embed or edit an existing one.</p>
+                    </div>
+                  </div>
+                </div>
+              </a>
               {generalModules.map(module => (
                 <ModuleCard
                   key={module.id}
@@ -132,6 +143,7 @@ export default function GuildSettings() {
                 />
               ))}
             </div>
+
 
             {/* Blue Protocol Modules */}
             <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>Blue Protocol: Star Resonance</h2>

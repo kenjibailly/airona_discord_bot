@@ -204,6 +204,7 @@ export default function WorldBossSettings({ guildId }) {
         <label htmlFor="minutesBefore">Minutes Before Spawn *</label>
         <input
           id="minutesBefore"
+          className={styles.select}
           name="minutesBefore"
           type="number"
           min="1"
@@ -217,7 +218,7 @@ export default function WorldBossSettings({ guildId }) {
 
       <div className={styles.formGroup}>
         <label htmlFor="embedColor">Embed Color</label>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center"}}>
           <input
             id="embedColor"
             name="embedColor"
@@ -225,7 +226,7 @@ export default function WorldBossSettings({ guildId }) {
             value={settings.embedColor}
             onChange={handleChange}
             placeholder="#ff6b00"
-            style={{ flex: 1 }}
+            style={{ flex: 1, backgroundColor: "var(--secondary-color)", color: "white", border: "none", borderRadius: "3px", padding: "0.5rem" }}
           />
           <input
             type="color"

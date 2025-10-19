@@ -1,8 +1,21 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import styles from "../styles/Dashboard.module.css";
 
 export default function Navbar({ user, guilds = [], selectedGuildId = "" }) {
   const navigate = useNavigate();
+
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = (guildId) => {
+    // Simulate what you used to do in handleGuildChange
+    if (guildId) {
+      navigate(`/guild/${guildId}`);
+    } else {
+      navigate("/dashboard");
+    }
+    setOpen(false);
+  };
 
   const handleLogout = () => {
     window.location.href = "/auth/logout";
@@ -17,13 +30,9 @@ export default function Navbar({ user, guilds = [], selectedGuildId = "" }) {
     return `https://cdn.discordapp.com/embed/avatars/${(parseInt(user.id) >> 22) % 6}.png`;
   };
 
-  const handleGuildChange = (e) => {
-    const newGuildId = e.target.value;
-    if (newGuildId) {
-      navigate(`/guild/${newGuildId}`);
-    } else {
-      navigate("/dashboard");
-    }
+  const getGuildIconUrl = (guild) => {
+    if (!guild || !guild.icon) return null;
+    return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
   };
 
   return (
@@ -36,18 +45,43 @@ export default function Navbar({ user, guilds = [], selectedGuildId = "" }) {
           Discord Dashboard
         </h2>
         {guilds.length > 0 && (
-          <select 
-            value={selectedGuildId} 
-            onChange={handleGuildChange}
-            style={{ padding: "5px 10px", fontSize: "14px" }}
-          >
-            <option value="">Select a server...</option>
-            {guilds.map(g => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
+          <div className={styles.dropdown}>
+          <div className={styles.selected} onClick={() => setOpen(!open)}>
+            {selectedGuildId ? (
+              <div className={styles.selectedGuild}>
+                <img
+                  src={getGuildIconUrl(guilds.find(g => g.id === selectedGuildId))}
+                  alt={
+                    guilds.find(g => g.id === selectedGuildId)?.name || "Selected server"
+                  }
+                  className={styles.guildIcon}
+                />
+                <span>{guilds.find(g => g.id === selectedGuildId)?.name}</span>
+              </div>
+            ) : (
+              "Select a server..."
+            )}
+          </div>
+
+            {open && (
+              <div className={styles.menu}>
+                {guilds.map(g => (
+                  <div
+                    key={g.id}
+                    className={styles.option}
+                    onClick={() => handleSelect(g.id)}
+                  >
+                    <img
+                      src={getGuildIconUrl(g)}
+                      alt={g.name}
+                      className={styles.icon}
+                    />
+                    <span>{g.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
       

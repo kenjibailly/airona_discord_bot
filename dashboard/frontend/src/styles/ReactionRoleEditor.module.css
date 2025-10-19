@@ -5,7 +5,9 @@
 .section {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--secondary-color);
+  padding: 2rem;
+  border-radius: 6px;
 }
 
 .section:last-of-type {
@@ -16,7 +18,7 @@
   margin-top: 0;
   margin-bottom: 1.5rem;
   font-size: 1.3rem;
-  color: #333;
+  color: white;
 }
 
 .formGroup {
@@ -27,7 +29,7 @@
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: white;
   font-size: 0.95rem;
 }
 
@@ -35,16 +37,33 @@
 .formGroup select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: none;
   border-radius: 6px;
   font-size: 0.95rem;
   font-family: inherit;
+  box-sizing: border-box;
+  background-color: var(--tertiary-color);
+  color: white;
+}
+
+.reactionBlock .formGroup select {
+  background-color: var(--secondary-color);
 }
 
 .formGroup input[type="text"]:focus,
 .formGroup select:focus {
   outline: none;
   border-color: #5865f2;
+}
+
+.formGroup select option:checked {
+  background-color: var(--secondary-color);
+  border-radius: 3px;
+  color: white;
+}
+
+.reactionBlock .formGroup select option:checked {
+  background-color: var(--tertiary-color);
 }
 
 .formGroup small {
@@ -73,7 +92,7 @@
 }
 
 .reactionBlock {
-  background: #f9f9f9;
+  background: var(--tertiary-color);
   padding: 1.5rem;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -89,7 +108,7 @@
 .reactionHeader h3 {
   margin: 0;
   font-size: 1rem;
-  color: #555;
+  color: white;
 }
 
 .removeButton {
@@ -116,8 +135,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--secondary-color);
   border-radius: 6px;
 }
 
@@ -131,21 +149,23 @@
 }
 
 .clearEmoji {
-  background: #f5f5f5;
+  background: var(--tertiary-color);
   border: none;
   border-radius: 4px;
   padding: 0.25rem 0.5rem;
   cursor: pointer;
   font-size: 0.85rem;
+  color: white;
+  margin-left: 10px;
 }
 
 .clearEmoji:hover {
-  background: #e0e0e0;
+  background: var(--tertiary-color2);
 }
 
 .selectEmojiButton {
   padding: 0.75rem 1.5rem;
-  background: #5865f2;
+  background: var(--purple-color);
   color: white;
   border: none;
   border-radius: 6px;
@@ -154,12 +174,12 @@
 }
 
 .selectEmojiButton:hover {
-  background: #4752c4;
+  background: var(--purple-color2);
 }
 
 .addButton {
   padding: 0.75rem 1.5rem;
-  background: #43b581;
+  background: var(--purple-color);
   color: white;
   border: none;
   border-radius: 6px;
@@ -169,7 +189,7 @@
 }
 
 .addButton:hover {
-  background: #3ca374;
+  background: var(--purple-color2);
 }
 
 .checkboxLabel {
@@ -188,18 +208,17 @@
 
 .saveButton {
   padding: 1rem 2rem;
-  background: #5865f2;
+  background: var(--pink-color);
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 2rem;
 }
 
 .saveButton:hover:not(:disabled) {
-  background: #4752c4;
+  background: var(--pink-color2);
 }
 
 .saveButton:disabled {
