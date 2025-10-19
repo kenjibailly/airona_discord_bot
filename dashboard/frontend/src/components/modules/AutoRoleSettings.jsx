@@ -19,9 +19,9 @@ export default function AutoRoleSettings({ guildId }) {
   const fetchSettings = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/modules/autorole`, {
-        withCredentials: true
+        withCredentials: true,
       });
-      
+
       if (response.data.settings && response.data.settings.roleId) {
         setSettings(response.data.settings);
       }
@@ -33,11 +33,13 @@ export default function AutoRoleSettings({ guildId }) {
   const fetchRoles = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/roles`, {
-        withCredentials: true
+        withCredentials: true,
       });
-      
+
       // Filter out managed roles (bot roles, boosts, etc.)
-      const assignableRoles = (response.data.roles || []).filter(role => !role.managed);
+      const assignableRoles = (response.data.roles || []).filter(
+        (role) => !role.managed
+      );
       setRoles(assignableRoles);
       setLoading(false);
     } catch (err) {
@@ -48,7 +50,7 @@ export default function AutoRoleSettings({ guildId }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    
+
     if (!settings.roleId) {
       alert("Please select a role");
       return;
@@ -58,9 +60,13 @@ export default function AutoRoleSettings({ guildId }) {
     setSaveSuccess(false);
 
     try {
-      await axios.put(`/guilds/${guildId}/modules/autorole/settings`, {
-        settings
-      }, { withCredentials: true });
+      await axios.put(
+        `/guilds/${guildId}/modules/autorole/settings`,
+        {
+          settings,
+        },
+        { withCredentials: true }
+      );
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -74,16 +80,16 @@ export default function AutoRoleSettings({ guildId }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const getRoleColor = (roleId) => {
-    const role = roles.find(r => r.id === roleId);
+    const role = roles.find((r) => r.id === roleId);
     if (!role || role.color === 0) return "#99aab5"; // Default gray
-    return `#${role.color.toString(16).padStart(6, '0')}`;
+    return `#${role.color.toString(16).padStart(6, "0")}`;
   };
 
   if (loading) {
@@ -104,13 +110,13 @@ export default function AutoRoleSettings({ guildId }) {
           className={styles.select}
         >
           <option value="">Select a role...</option>
-          {roles.map(role => (
-            <option 
-              key={role.id} 
+          {roles.map((role) => (
+            <option
+              key={role.id}
               value={role.id}
-              style={{ 
+              style={{
                 color: getRoleColor(role.id),
-                fontWeight: "500"
+                fontWeight: "500",
               }}
             >
               {role.name}
@@ -118,35 +124,37 @@ export default function AutoRoleSettings({ guildId }) {
           ))}
         </select>
         <small className={styles.hint}>
-          This role will be automatically assigned to new members when they join the server
+          This role will be automatically assigned to new members when they join
+          the server
         </small>
       </div>
 
       {settings.roleId && (
         <div className={styles.preview}>
           <strong>Selected Role:</strong>
-          <span 
+          <span
             className={styles.rolePreview}
-            style={{ 
+            style={{
               color: getRoleColor(settings.roleId),
               backgroundColor: `${getRoleColor(settings.roleId)}20`,
               border: `1px solid ${getRoleColor(settings.roleId)}`,
             }}
           >
-            {roles.find(r => r.id === settings.roleId)?.name || "Unknown Role"}
+            {roles.find((r) => r.id === settings.roleId)?.name ||
+              "Unknown Role"}
           </span>
         </div>
       )}
 
       <div className={styles.buttonGroup}>
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={saving || !settings.roleId}
           className={styles.saveButton}
         >
           {saving ? "Saving..." : "Save Settings"}
         </button>
-        
+
         {saveSuccess && (
           <span className={styles.successMessage}>
             ✓ Settings saved successfully!

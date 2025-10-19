@@ -19,36 +19,36 @@ export default function EmbedBuilder() {
   const [isEditing, setIsEditing] = useState(false);
   const [messageId, setMessageId] = useState("");
   const [channelId, setChannelId] = useState("");
-  
-const [embedData, setEmbedData] = useState({
-  content: "",
-  embeds: [
-    {
-      author: {
-        name: "",
+
+  const [embedData, setEmbedData] = useState({
+    content: "",
+    embeds: [
+      {
+        author: {
+          name: "",
+          url: "",
+          icon_url: "",
+        },
+        title: "",
         url: "",
-        icon_url: ""
+        description: "",
+        color: 5814783, // #58b9ff in decimal
+        fields: [],
+        thumbnail: {
+          url: "",
+        },
+        image: {
+          url: "",
+        },
+        footer: {
+          text: "",
+          icon_url: "",
+        },
+        timestamp: "",
       },
-      title: "",
-      url: "",
-      description: "",
-      color: 5814783, // #58b9ff in decimal
-      fields: [],
-      thumbnail: {
-        url: ""
-      },
-      image: {
-        url: ""
-      },
-      footer: {
-        text: "",
-        icon_url: ""
-      },
-      timestamp: ""
-    }
-  ],
-  components: []
-});
+    ],
+    components: [],
+  });
 
   useEffect(() => {
     if (!authLoading) {
@@ -59,7 +59,7 @@ const [embedData, setEmbedData] = useState({
   const fetchChannels = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/channels`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setChannels(response.data.channels || []);
     } catch (err) {
@@ -87,16 +87,22 @@ const [embedData, setEmbedData] = useState({
     }
 
     try {
-      const response = await axios.get(`/guilds/${guildId}/message/${channelIdFromLink}/${messageIdFromLink}`, {
-        withCredentials: true
-      });
+      const response = await axios.get(
+        `/guilds/${guildId}/message/${channelIdFromLink}/${messageIdFromLink}`,
+        {
+          withCredentials: true,
+        }
+      );
 
       setEmbedData({
         content: response.data.content || "",
-        embeds: response.data.embeds.length > 0 ? response.data.embeds : embedData.embeds,
-        components: response.data.components || []
+        embeds:
+          response.data.embeds.length > 0
+            ? response.data.embeds
+            : embedData.embeds,
+        components: response.data.components || [],
       });
-      
+
       setIsEditing(true);
       setMessageId(messageIdFromLink);
       setChannelId(channelIdFromLink);
@@ -146,14 +152,22 @@ const [embedData, setEmbedData] = useState({
 
     try {
       if (isEditing) {
-        await axios.put(`/guilds/${guildId}/message/${channelId}/${messageId}`, embedData, {
-          withCredentials: true
-        });
+        await axios.put(
+          `/guilds/${guildId}/message/${channelId}/${messageId}`,
+          embedData,
+          {
+            withCredentials: true,
+          }
+        );
         alert("Message updated successfully!");
       } else {
-        await axios.post(`/guilds/${guildId}/message/${selectedChannel}`, embedData, {
-          withCredentials: true
-        });
+        await axios.post(
+          `/guilds/${guildId}/message/${selectedChannel}`,
+          embedData,
+          {
+            withCredentials: true,
+          }
+        );
         alert("Message sent successfully!");
         // Reset form
         setMessageLink("");
@@ -174,9 +188,9 @@ const [embedData, setEmbedData] = useState({
   return (
     <div className={styles.container}>
       <Navbar user={user} guilds={guilds} selectedGuildId={guildId} />
-      
+
       <div style={{ padding: "2rem" }}>
-        <button 
+        <button
           className={styles.button}
           onClick={() => navigate(`/guild/${guildId}`)}
           style={{ marginBottom: "1rem" }}
@@ -195,7 +209,7 @@ const [embedData, setEmbedData] = useState({
               disabled={isEditing}
             >
               <option value="">Select a channel...</option>
-              {channels.map(channel => (
+              {channels.map((channel) => (
                 <option key={channel.id} value={channel.id}>
                   # {channel.name}
                 </option>
@@ -216,19 +230,20 @@ const [embedData, setEmbedData] = useState({
             </div>
           </div>
 
-          <button 
-            className={embedStyles.sendButton}
-            onClick={handleSendOrEdit}
-          >
+          <button className={embedStyles.sendButton} onClick={handleSendOrEdit}>
             {isEditing ? "Edit Message" : "Send Message"}
           </button>
         </div>
 
         <div className={embedStyles.builderContainer}>
           <div className={embedStyles.editorPanel}>
-            <EmbedEditor embedData={embedData} setEmbedData={setEmbedData} guildId={guildId} />
+            <EmbedEditor
+              embedData={embedData}
+              setEmbedData={setEmbedData}
+              guildId={guildId}
+            />
           </div>
-          
+
           <div className={embedStyles.previewPanel}>
             <h3>Preview</h3>
             <EmbedPreview embedData={embedData} />

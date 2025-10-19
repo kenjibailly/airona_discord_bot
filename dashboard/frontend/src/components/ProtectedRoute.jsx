@@ -8,8 +8,9 @@ export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get("/auth/session", { withCredentials: true })
-      .then(res => {
+    axios
+      .get("/auth/session", { withCredentials: true })
+      .then((res) => {
         if (res.data.user) {
           setIsAuthenticated(true);
         } else {
@@ -17,7 +18,7 @@ export default function ProtectedRoute({ children }) {
         }
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Auth check failed:", err);
         navigate("/");
         setLoading(false);
@@ -25,7 +26,9 @@ export default function ProtectedRoute({ children }) {
   }, [navigate]);
 
   if (loading) {
-    return <div style={{ textAlign: "center", marginTop: "50px" }}>Loading...</div>;
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>Loading...</div>
+    );
   }
 
   return isAuthenticated ? children : null;

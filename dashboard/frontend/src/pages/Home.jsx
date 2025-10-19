@@ -11,14 +11,15 @@ export default function Home() {
 
   useEffect(() => {
     // Check if user is logged in
-    axios.get("/auth/session", { withCredentials: true })
-      .then(res => {
+    axios
+      .get("/auth/session", { withCredentials: true })
+      .then((res) => {
         if (res.data.user) {
           setIsAuthenticated(true);
         }
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         // Not authenticated
         setIsAuthenticated(false);
         setLoading(false);

@@ -24,10 +24,12 @@ export default function Navbar({ user, guilds = [], selectedGuildId = "" }) {
   const getAvatarUrl = (user) => {
     if (!user) return null;
     if (user.avatar) {
-      const extension = user.avatar.startsWith('a_') ? 'gif' : 'png';
+      const extension = user.avatar.startsWith("a_") ? "gif" : "png";
       return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${extension}`;
     }
-    return `https://cdn.discordapp.com/embed/avatars/${(parseInt(user.id) >> 22) % 6}.png`;
+    return `https://cdn.discordapp.com/embed/avatars/${
+      (parseInt(user.id) >> 22) % 6
+    }.png`;
   };
 
   const getGuildIconUrl = (guild) => {
@@ -38,34 +40,39 @@ export default function Navbar({ user, guilds = [], selectedGuildId = "" }) {
   return (
     <nav className={styles.navBar}>
       <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-        <h2 
-          onClick={() => navigate("/dashboard")} 
+        <h2
+          onClick={() => navigate("/dashboard")}
           style={{ cursor: "pointer" }}
         >
           Discord Dashboard
         </h2>
         {guilds.length > 0 && (
           <div className={styles.dropdown}>
-          <div className={styles.selected} onClick={() => setOpen(!open)}>
-            {selectedGuildId ? (
-              <div className={styles.selectedGuild}>
-                <img
-                  src={getGuildIconUrl(guilds.find(g => g.id === selectedGuildId))}
-                  alt={
-                    guilds.find(g => g.id === selectedGuildId)?.name || "Selected server"
-                  }
-                  className={styles.guildIcon}
-                />
-                <span>{guilds.find(g => g.id === selectedGuildId)?.name}</span>
-              </div>
-            ) : (
-              "Select a server..."
-            )}
-          </div>
+            <div className={styles.selected} onClick={() => setOpen(!open)}>
+              {selectedGuildId ? (
+                <div className={styles.selectedGuild}>
+                  <img
+                    src={getGuildIconUrl(
+                      guilds.find((g) => g.id === selectedGuildId)
+                    )}
+                    alt={
+                      guilds.find((g) => g.id === selectedGuildId)?.name ||
+                      "Selected server"
+                    }
+                    className={styles.guildIcon}
+                  />
+                  <span>
+                    {guilds.find((g) => g.id === selectedGuildId)?.name}
+                  </span>
+                </div>
+              ) : (
+                "Select a server..."
+              )}
+            </div>
 
             {open && (
               <div className={styles.menu}>
-                {guilds.map(g => (
+                {guilds.map((g) => (
                   <div
                     key={g.id}
                     className={styles.option}
@@ -84,12 +91,12 @@ export default function Navbar({ user, guilds = [], selectedGuildId = "" }) {
           </div>
         )}
       </div>
-      
+
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {user && (
           <>
-            <img 
-              src={getAvatarUrl(user)} 
+            <img
+              src={getAvatarUrl(user)}
               alt={user.global_name}
               className={styles.avatar}
             />

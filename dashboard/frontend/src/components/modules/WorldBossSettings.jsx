@@ -3,24 +3,26 @@ import axios from "axios";
 import styles from "../../styles/ModuleSettings.module.css";
 
 const WORLD_BOSSES = {
-  "00": [ // XX:00 spawns
+  "00": [
+    // XX:00 spawns
     { name: "Golden Juggernaut", level: 10 },
     { name: "Inferno Ogre", level: 25 },
     { name: "Brigand Leader", level: 35 },
     { name: "Muku Chief", level: 45 },
     { name: "Storm Goblin King", level: 55 },
     { name: "Celestial Flier", level: 60 },
-    { name: "Goblin King", level: 60 }
+    { name: "Goblin King", level: 60 },
   ],
-  "30": [ // XX:30 spawns
+  30: [
+    // XX:30 spawns
     { name: "Frost Ogre", level: 20 },
     { name: "Phantom Arachnocrab", level: 30 },
     { name: "Venobzzar Incubator", level: 40 },
     { name: "Iron Fang", level: 50 },
     { name: "Tempest Ogre", level: 60 },
     { name: "Lizardman King", level: 60 },
-    { name: "Muku King", level: 60 }
-  ]
+    { name: "Muku King", level: 60 },
+  ],
 };
 
 export default function WorldBossSettings({ guildId }) {
@@ -28,7 +30,7 @@ export default function WorldBossSettings({ guildId }) {
     roleId: "",
     channelId: "",
     minutesBefore: 5,
-    embedColor: "#ff6b00"
+    embedColor: "#ff6b00",
   });
   const [roles, setRoles] = useState([]);
   const [channels, setChannels] = useState([]);
@@ -45,10 +47,13 @@ export default function WorldBossSettings({ guildId }) {
   const fetchSettings = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/modules/worldboss`, {
-        withCredentials: true
+        withCredentials: true,
       });
-      
-      if (response.data.settings && Object.keys(response.data.settings).length > 0) {
+
+      if (
+        response.data.settings &&
+        Object.keys(response.data.settings).length > 0
+      ) {
         setSettings(response.data.settings);
       }
       setLoading(false);
@@ -61,9 +66,11 @@ export default function WorldBossSettings({ guildId }) {
   const fetchRoles = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/roles`, {
-        withCredentials: true
+        withCredentials: true,
       });
-      const assignableRoles = (response.data.roles || []).filter(role => !role.managed);
+      const assignableRoles = (response.data.roles || []).filter(
+        (role) => !role.managed
+      );
       setRoles(assignableRoles);
     } catch (err) {
       console.error("Failed to fetch roles:", err);
@@ -73,7 +80,7 @@ export default function WorldBossSettings({ guildId }) {
   const fetchChannels = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/channels`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setChannels(response.data.channels || []);
     } catch (err) {
@@ -83,7 +90,7 @@ export default function WorldBossSettings({ guildId }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    
+
     if (!settings.roleId) {
       alert("Please select a role to ping");
       return;
@@ -103,9 +110,13 @@ export default function WorldBossSettings({ guildId }) {
     setSaveSuccess(false);
 
     try {
-      await axios.put(`/guilds/${guildId}/modules/worldboss/settings`, {
-        settings
-      }, { withCredentials: true });
+      await axios.put(
+        `/guilds/${guildId}/modules/worldboss/settings`,
+        {
+          settings,
+        },
+        { withCredentials: true }
+      );
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -119,16 +130,16 @@ export default function WorldBossSettings({ guildId }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const getRoleColor = (roleId) => {
-    const role = roles.find(r => r.id === roleId);
+    const role = roles.find((r) => r.id === roleId);
     if (!role || role.color === 0) return "#99aab5";
-    return `#${role.color.toString(16).padStart(6, '0')}`;
+    return `#${role.color.toString(16).padStart(6, "0")}`;
   };
 
   if (loading) {
@@ -148,7 +159,7 @@ export default function WorldBossSettings({ guildId }) {
           required
         >
           <option value="">Select a channel...</option>
-          {channels.map(channel => (
+          {channels.map((channel) => (
             <option key={channel.id} value={channel.id}>
               # {channel.name}
             </option>
@@ -168,13 +179,13 @@ export default function WorldBossSettings({ guildId }) {
           required
         >
           <option value="">Select a role...</option>
-          {roles.map(role => (
-            <option 
-              key={role.id} 
+          {roles.map((role) => (
+            <option
+              key={role.id}
               value={role.id}
-              style={{ 
+              style={{
                 color: getRoleColor(role.id),
-                fontWeight: "500"
+                fontWeight: "500",
               }}
             >
               {role.name}
@@ -187,15 +198,16 @@ export default function WorldBossSettings({ guildId }) {
       {settings.roleId && (
         <div className={styles.preview}>
           <strong>Selected Role:</strong>
-          <span 
+          <span
             className={styles.rolePreview}
-            style={{ 
+            style={{
               color: getRoleColor(settings.roleId),
               backgroundColor: `${getRoleColor(settings.roleId)}20`,
               border: `1px solid ${getRoleColor(settings.roleId)}`,
             }}
           >
-            {roles.find(r => r.id === settings.roleId)?.name || "Unknown Role"}
+            {roles.find((r) => r.id === settings.roleId)?.name ||
+              "Unknown Role"}
           </span>
         </div>
       )}
@@ -213,12 +225,15 @@ export default function WorldBossSettings({ guildId }) {
           onChange={handleChange}
           required
         />
-        <small>How many minutes before the boss spawns to send the notification (1-60)</small>
+        <small>
+          How many minutes before the boss spawns to send the notification
+          (1-60)
+        </small>
       </div>
 
       <div className={styles.formGroup}>
         <label htmlFor="embedColor">Embed Color</label>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center"}}>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <input
             id="embedColor"
             name="embedColor"
@@ -226,12 +241,21 @@ export default function WorldBossSettings({ guildId }) {
             value={settings.embedColor}
             onChange={handleChange}
             placeholder="#ff6b00"
-            style={{ flex: 1, backgroundColor: "var(--secondary-color)", color: "white", border: "none", borderRadius: "3px", padding: "0.5rem" }}
+            style={{
+              flex: 1,
+              backgroundColor: "var(--secondary-color)",
+              color: "white",
+              border: "none",
+              borderRadius: "3px",
+              padding: "0.5rem",
+            }}
           />
           <input
             type="color"
             value={settings.embedColor}
-            onChange={(e) => setSettings(prev => ({ ...prev, embedColor: e.target.value }))}
+            onChange={(e) =>
+              setSettings((prev) => ({ ...prev, embedColor: e.target.value }))
+            }
             style={{ width: "60px", height: "38px", cursor: "pointer" }}
           />
         </div>
@@ -244,27 +268,27 @@ export default function WorldBossSettings({ guildId }) {
           <strong>Every hour at XX:00:</strong>
           <ul style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
             {WORLD_BOSSES["00"].map((boss, i) => (
-              <li key={i}>{boss.name} (Lv. {boss.level})</li>
+              <li key={i}>
+                {boss.name} (Lv. {boss.level})
+              </li>
             ))}
           </ul>
           <strong>Every hour at XX:30:</strong>
           <ul style={{ marginTop: "0.25rem" }}>
             {WORLD_BOSSES["30"].map((boss, i) => (
-              <li key={i}>{boss.name} (Lv. {boss.level})</li>
+              <li key={i}>
+                {boss.name} (Lv. {boss.level})
+              </li>
             ))}
           </ul>
         </div>
       </div>
 
       <div className={styles.buttonGroup}>
-        <button 
-          type="submit" 
-          disabled={saving}
-          className={styles.saveButton}
-        >
+        <button type="submit" disabled={saving} className={styles.saveButton}>
           {saving ? "Saving..." : "Save Settings"}
         </button>
-        
+
         {saveSuccess && (
           <span className={styles.successMessage}>
             ✓ Settings saved successfully!

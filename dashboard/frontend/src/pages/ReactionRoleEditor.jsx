@@ -42,23 +42,25 @@ export default function ReactionRoleEditor() {
     }
   }, [guildId, reactionRoleId, authLoading]);
 
-const fetchRoles = async () => {
-  try {
-    const response = await axios.get(`/guilds/${guildId}/roles`, {
-      withCredentials: true
-    });
-    // Filter out managed roles (bot roles, boosts, etc.)
-    const assignableRoles = (response.data.roles || []).filter(role => !role.managed);
-    setRoles(assignableRoles);
-  } catch (err) {
-    console.error("Failed to fetch roles:", err);
-  }
-};
+  const fetchRoles = async () => {
+    try {
+      const response = await axios.get(`/guilds/${guildId}/roles`, {
+        withCredentials: true,
+      });
+      // Filter out managed roles (bot roles, boosts, etc.)
+      const assignableRoles = (response.data.roles || []).filter(
+        (role) => !role.managed
+      );
+      setRoles(assignableRoles);
+    } catch (err) {
+      console.error("Failed to fetch roles:", err);
+    }
+  };
 
   const fetchEmojis = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/emojis`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setEmojis(response.data.emojis || []);
     } catch (err) {
@@ -66,72 +68,84 @@ const fetchRoles = async () => {
     }
   };
 
-const fetchReactionRole = async () => {
-  try {
-    const response = await axios.get(`/guilds/${guildId}/reaction-roles/${reactionRoleId}`, {
-      withCredentials: true
-    });
-    
-    // Check if response is valid JSON
-    if (!response.data || typeof response.data !== 'object' || Array.isArray(response.data)) {
-      console.error("Invalid response format:", response.data);
-      alert("Failed to load reaction role. Invalid response from server.");
+  const fetchReactionRole = async () => {
+    try {
+      const response = await axios.get(
+        `/guilds/${guildId}/reaction-roles/${reactionRoleId}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      // Check if response is valid JSON
+      if (
+        !response.data ||
+        typeof response.data !== "object" ||
+        Array.isArray(response.data)
+      ) {
+        console.error("Invalid response format:", response.data);
+        alert("Failed to load reaction role. Invalid response from server.");
+        navigate(`/guild/${guildId}/module/reactionroles`);
+        return;
+      }
+
+      // Ensure reactions is always an array
+      const data = response.data;
+      if (!data.reactions || !Array.isArray(data.reactions)) {
+        data.reactions = [
+          { emoji: "", emojiName: "", isCustom: false, roleIds: [] },
+        ];
+      }
+
+      setFormData(data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch reaction role:", err);
+      alert("Failed to load reaction role. Please try again.");
       navigate(`/guild/${guildId}/module/reactionroles`);
-      return;
+      setLoading(false);
     }
-    
-    // Ensure reactions is always an array
-    const data = response.data;
-    if (!data.reactions || !Array.isArray(data.reactions)) {
-      data.reactions = [{ emoji: "", emojiName: "", isCustom: false, roleIds: [] }];
-    }
-    
-    setFormData(data);
-    setLoading(false);
-  } catch (err) {
-    console.error("Failed to fetch reaction role:", err);
-    alert("Failed to load reaction role. Please try again.");
-    navigate(`/guild/${guildId}/module/reactionroles`);
-    setLoading(false);
-  }
-};
+  };
   const handleChange = (e) => {
     const { name, value, type: inputType, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: inputType === "checkbox" ? checked : value
+      [name]: inputType === "checkbox" ? checked : value,
     }));
   };
 
   const handleMultiSelect = (e, fieldName) => {
     const options = Array.from(e.target.selectedOptions);
-    const values = options.map(opt => opt.value);
-    setFormData(prev => ({
+    const values = options.map((opt) => opt.value);
+    setFormData((prev) => ({
       ...prev,
-      [fieldName]: values
+      [fieldName]: values,
     }));
   };
 
   const addReaction = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      reactions: [...prev.reactions, { emoji: "", emojiName: "", isCustom: false, roleIds: [] }]
+      reactions: [
+        ...prev.reactions,
+        { emoji: "", emojiName: "", isCustom: false, roleIds: [] },
+      ],
     }));
   };
 
   const removeReaction = (index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      reactions: prev.reactions.filter((_, i) => i !== index)
+      reactions: prev.reactions.filter((_, i) => i !== index),
     }));
   };
 
   const updateReaction = (index, field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      reactions: prev.reactions.map((reaction, i) => 
+      reactions: prev.reactions.map((reaction, i) =>
         i === index ? { ...reaction, [field]: value } : reaction
-      )
+      ),
     }));
   };
 
@@ -156,7 +170,7 @@ const fetchReactionRole = async () => {
       return;
     }
 
-    if (formData.reactions.some(r => !r.emoji || r.roleIds.length === 0)) {
+    if (formData.reactions.some((r) => !r.emoji || r.roleIds.length === 0)) {
       alert("All reactions must have an emoji and at least one role selected");
       return;
     }
@@ -165,12 +179,16 @@ const fetchReactionRole = async () => {
 
     try {
       if (isEdit) {
-        await axios.put(`/guilds/${guildId}/reaction-roles/${reactionRoleId}`, formData, {
-          withCredentials: true
-        });
+        await axios.put(
+          `/guilds/${guildId}/reaction-roles/${reactionRoleId}`,
+          formData,
+          {
+            withCredentials: true,
+          }
+        );
       } else {
         await axios.post(`/guilds/${guildId}/reaction-roles`, formData, {
-          withCredentials: true
+          withCredentials: true,
         });
       }
 
@@ -189,9 +207,9 @@ const fetchReactionRole = async () => {
   return (
     <div className={styles.container}>
       <Navbar user={user} guilds={guilds} selectedGuildId={guildId} />
-      
+
       <div style={{ padding: "2rem" }}>
-        <button 
+        <button
           className={styles.button}
           onClick={() => navigate(`/guild/${guildId}/module/reactionroles`)}
           style={{ marginBottom: "1rem" }}
@@ -205,7 +223,7 @@ const fetchReactionRole = async () => {
           {/* Message Settings */}
           <section className={editorStyles.section}>
             <h2>Message Settings</h2>
-            
+
             <div className={editorStyles.formGroup}>
               <label htmlFor="name">Name *</label>
               <input
@@ -222,7 +240,12 @@ const fetchReactionRole = async () => {
             <div className={editorStyles.formGroup}>
               <label htmlFor="messageLink">
                 Message Link *
-                <span className={editorStyles.tooltip} data-tooltip="Right-click a message in Discord and select 'Copy Message Link'">ⓘ</span>
+                <span
+                  className={editorStyles.tooltip}
+                  data-tooltip="Right-click a message in Discord and select 'Copy Message Link'"
+                >
+                  ⓘ
+                </span>
               </label>
               <input
                 id="messageLink"
@@ -233,14 +256,16 @@ const fetchReactionRole = async () => {
                 placeholder="https://discord.com/channels/..."
                 required
               />
-              <small>Right-click a message in Discord and select "Copy Message Link"</small>
+              <small>
+                Right-click a message in Discord and select "Copy Message Link"
+              </small>
             </div>
           </section>
 
           {/* Reaction Settings */}
           <section className={editorStyles.section}>
             <h2>Reaction Settings</h2>
-            
+
             {formData.reactions.map((reaction, index) => (
               <div key={index} className={editorStyles.reactionBlock}>
                 <div className={editorStyles.reactionHeader}>
@@ -262,13 +287,15 @@ const fetchReactionRole = async () => {
                     {reaction.emoji ? (
                       <div className={editorStyles.selectedEmoji}>
                         {reaction.isCustom ? (
-                          <img 
+                          <img
                             src={`https://cdn.discordapp.com/emojis/${reaction.emoji}.png`}
                             alt={reaction.emojiName}
                             className={editorStyles.emojiImage}
                           />
                         ) : (
-                          <span className={editorStyles.emojiNative}>{reaction.emoji}</span>
+                          <span className={editorStyles.emojiNative}>
+                            {reaction.emoji}
+                          </span>
                         )}
                         <button
                           type="button"
@@ -291,7 +318,7 @@ const fetchReactionRole = async () => {
                         Select Emoji
                       </button>
                     )}
-                    
+
                     {showEmojiPicker === index && (
                       <EmojiPicker
                         customEmojis={emojis}
@@ -309,13 +336,13 @@ const fetchReactionRole = async () => {
                     value={reaction.roleIds}
                     onChange={(e) => {
                       const options = Array.from(e.target.selectedOptions);
-                      const values = options.map(opt => opt.value);
+                      const values = options.map((opt) => opt.value);
                       updateReaction(index, "roleIds", values);
                     }}
                     className={editorStyles.multiSelect}
                     required
                   >
-                    {roles.map(role => (
+                    {roles.map((role) => (
                       <option key={role.id} value={role.id}>
                         {role.name}
                       </option>
@@ -352,16 +379,24 @@ const fetchReactionRole = async () => {
                 <option value="remove_only">Remove Only</option>
               </select>
               <small>
-                {formData.type === "normal" && "Reaction adds role, removing reaction removes role"}
-                {formData.type === "add_only" && "Reaction only adds role, never removes it"}
-                {formData.type === "remove_only" && "Reaction only removes role"}
+                {formData.type === "normal" &&
+                  "Reaction adds role, removing reaction removes role"}
+                {formData.type === "add_only" &&
+                  "Reaction only adds role, never removes it"}
+                {formData.type === "remove_only" &&
+                  "Reaction only removes role"}
               </small>
             </div>
 
             <div className={editorStyles.formGroup}>
               <label>
                 Allowed Roles
-                <span className={editorStyles.tooltip} data-tooltip="Only members with these roles can receive reaction roles. Leave empty to allow all members.">ⓘ</span>
+                <span
+                  className={editorStyles.tooltip}
+                  data-tooltip="Only members with these roles can receive reaction roles. Leave empty to allow all members."
+                >
+                  ⓘ
+                </span>
               </label>
               <select
                 multiple
@@ -369,19 +404,26 @@ const fetchReactionRole = async () => {
                 onChange={(e) => handleMultiSelect(e, "allowedRoles")}
                 className={editorStyles.multiSelect}
               >
-                {roles.map(role => (
+                {roles.map((role) => (
                   <option key={role.id} value={role.id}>
                     {role.name}
                   </option>
                 ))}
               </select>
-              <small>Leave empty to allow all members. Hold Ctrl/Cmd for multiple</small>
+              <small>
+                Leave empty to allow all members. Hold Ctrl/Cmd for multiple
+              </small>
             </div>
 
             <div className={editorStyles.formGroup}>
               <label>
                 Ignored Roles
-                <span className={editorStyles.tooltip} data-tooltip="Members with these roles will be ignored and won't receive any reaction roles.">ⓘ</span>
+                <span
+                  className={editorStyles.tooltip}
+                  data-tooltip="Members with these roles will be ignored and won't receive any reaction roles."
+                >
+                  ⓘ
+                </span>
               </label>
               <select
                 multiple
@@ -389,7 +431,7 @@ const fetchReactionRole = async () => {
                 onChange={(e) => handleMultiSelect(e, "ignoredRoles")}
                 className={editorStyles.multiSelect}
               >
-                {roles.map(role => (
+                {roles.map((role) => (
                   <option key={role.id} value={role.id}>
                     {role.name}
                   </option>
@@ -407,7 +449,12 @@ const fetchReactionRole = async () => {
                   onChange={handleChange}
                 />
                 Allow members to get multiple roles
-                <span className={editorStyles.tooltip} data-tooltip="When disabled, members can only react to one reaction at a time. Their previous reaction will be removed.">ⓘ</span>
+                <span
+                  className={editorStyles.tooltip}
+                  data-tooltip="When disabled, members can only react to one reaction at a time. Their previous reaction will be removed."
+                >
+                  ⓘ
+                </span>
               </label>
             </div>
 
@@ -420,17 +467,26 @@ const fetchReactionRole = async () => {
                   onChange={handleChange}
                 />
                 Keep reaction counter at 1
-                <span className={editorStyles.tooltip} data-tooltip="Instantly remove reactions after reacting (but still give the role). Useful for verification menus.">ⓘ</span>
+                <span
+                  className={editorStyles.tooltip}
+                  data-tooltip="Instantly remove reactions after reacting (but still give the role). Useful for verification menus."
+                >
+                  ⓘ
+                </span>
               </label>
             </div>
           </section>
 
-          <button 
+          <button
             type="submit"
             disabled={saving}
             className={editorStyles.saveButton}
           >
-            {saving ? "Saving..." : isEdit ? "Update Reaction Role" : "Create Reaction Role"}
+            {saving
+              ? "Saving..."
+              : isEdit
+              ? "Update Reaction Role"
+              : "Create Reaction Role"}
           </button>
         </form>
       </div>

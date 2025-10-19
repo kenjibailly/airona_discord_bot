@@ -18,12 +18,13 @@ export default function GuildSettings() {
 
   useEffect(() => {
     if (!loading && guilds.length > 0) {
-      const foundGuild = guilds.find(g => g.id === guildId);
-     
+      const foundGuild = guilds.find((g) => g.id === guildId);
+
       if (foundGuild) {
         const MANAGE_GUILD = 0x20;
-        const hasManagePermission = (parseInt(foundGuild.permissions) & MANAGE_GUILD) === MANAGE_GUILD;
-       
+        const hasManagePermission =
+          (parseInt(foundGuild.permissions) & MANAGE_GUILD) === MANAGE_GUILD;
+
         if (hasManagePermission) {
           setGuild(foundGuild);
           setHasPermission(true);
@@ -41,7 +42,7 @@ export default function GuildSettings() {
   const fetchModules = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/modules`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setModules(response.data.modules);
       setModulesLoading(false);
@@ -53,13 +54,19 @@ export default function GuildSettings() {
 
   const handleModuleToggle = async (moduleId, newState) => {
     try {
-      await axios.post(`/guilds/${guildId}/modules/${moduleId}/toggle`, {
-        enabled: newState
-      }, { withCredentials: true });
-     
-      setModules(modules.map(m =>
-        m.id === moduleId ? { ...m, enabled: newState } : m
-      ));
+      await axios.post(
+        `/guilds/${guildId}/modules/${moduleId}/toggle`,
+        {
+          enabled: newState,
+        },
+        { withCredentials: true }
+      );
+
+      setModules(
+        modules.map((m) =>
+          m.id === moduleId ? { ...m, enabled: newState } : m
+        )
+      );
     } catch (err) {
       console.error("Failed to toggle module:", err);
       throw err;
@@ -71,8 +78,10 @@ export default function GuildSettings() {
     return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
   };
 
-  const generalModules = modules.filter(m => m.category === "general");
-  const blueProtocolModules = modules.filter(m => m.category === "blueprotocol");
+  const generalModules = modules.filter((m) => m.category === "general");
+  const blueProtocolModules = modules.filter(
+    (m) => m.category === "blueprotocol"
+  );
 
   if (loading || !guild || !hasPermission) {
     return <div>Loading...</div>;
@@ -81,9 +90,16 @@ export default function GuildSettings() {
   return (
     <div className={styles.container}>
       <Navbar user={user} guilds={guilds} selectedGuildId={guildId} />
-     
+
       <div style={{ padding: "2rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "2rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+            marginBottom: "2rem",
+          }}
+        >
           {getGuildIconUrl(guild) && (
             <img
               src={getGuildIconUrl(guild)}
@@ -91,71 +107,64 @@ export default function GuildSettings() {
               style={{
                 width: "64px",
                 height: "64px",
-                borderRadius: "50%"
+                borderRadius: "50%",
               }}
             />
           )}
           <h1>{guild.name} Settings</h1>
         </div>
 
-        {/* <button
-          onClick={() => navigate(`/guild/${guildId}/embed-builder`)}
-          style={{
-            padding: "0.75rem 1.5rem",
-            background: "#5865f2",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            fontWeight: "600",
-            cursor: "pointer",
-            marginBottom: "2rem"
-          }}
-        >
-          📝 Embed Builder
-        </button> */}
-
         {modulesLoading ? (
           <div>Loading modules...</div>
         ) : (
           <>
             {/* General Discord Modules */}
-            <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>General Modules</h2>
+            <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>
+              General Modules
+            </h2>
             <div className={moduleCardStyles.cards}>
-              <a onClick={() => navigate(`/guild/${guildId}/embed-builder`)}>
-                <div className={moduleCardStyles.card}>
+              <div className={moduleCardStyles.card}>
+                <a onClick={() => navigate(`/guild/${guildId}/embed-builder`)}>
                   <div className={moduleCardStyles.content}>
                     <div className={moduleCardStyles.info}>
                       <h3 className={moduleCardStyles.title}>Embed Builder</h3>
-                      <p className={moduleCardStyles.description}>Create your own embed or edit an existing one.</p>
+                      <p className={moduleCardStyles.description}>
+                        Create your own embed or edit an existing one.
+                      </p>
                     </div>
                   </div>
-                </div>
-              </a>
-              {generalModules.map(module => (
+                </a>
+              </div>
+              {generalModules.map((module) => (
                 <ModuleCard
                   key={module.id}
                   moduleId={module.id}
                   title={module.title}
                   description={module.description}
                   enabled={module.enabled}
-                  onToggle={(newState) => handleModuleToggle(module.id, newState)}
+                  onToggle={(newState) =>
+                    handleModuleToggle(module.id, newState)
+                  }
                   guildId={guildId}
                 />
               ))}
             </div>
 
-
             {/* Blue Protocol Modules */}
-            <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>Blue Protocol: Star Resonance</h2>
+            <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>
+              Blue Protocol: Star Resonance
+            </h2>
             <div>
-              {blueProtocolModules.map(module => (
+              {blueProtocolModules.map((module) => (
                 <ModuleCard
                   key={module.id}
                   moduleId={module.id}
                   title={module.title}
                   description={module.description}
                   enabled={module.enabled}
-                  onToggle={(newState) => handleModuleToggle(module.id, newState)}
+                  onToggle={(newState) =>
+                    handleModuleToggle(module.id, newState)
+                  }
                   guildId={guildId}
                 />
               ))}

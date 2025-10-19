@@ -1,7 +1,5 @@
 .cards {
-  display: inline-grid;
-  justify-content: center;
-  align-items: center;
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
@@ -12,7 +10,8 @@
   padding: 1.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  flex-basis: 30%;
+  display: flex;
+  flex-direction: column;
 }
 
 .card:hover {

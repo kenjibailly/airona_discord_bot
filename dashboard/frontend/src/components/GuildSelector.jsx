@@ -5,8 +5,10 @@ export default function GuildSelector({ guilds }) {
     <div>
       <h2>Select a guild</h2>
       <select>
-        {guilds.map(guild => (
-          <option key={guild.id} value={guild.id}>{guild.name}</option>
+        {guilds.map((guild) => (
+          <option key={guild.id} value={guild.id}>
+            {guild.name}
+          </option>
         ))}
       </select>
     </div>

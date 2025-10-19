@@ -20,9 +20,9 @@ export default function WelcomeSettings({ guildId }) {
   const fetchSettings = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/modules/welcome`, {
-        withCredentials: true
+        withCredentials: true,
       });
-      
+
       if (response.data.settings && response.data.settings.welcomeMessage) {
         setSettings(response.data.settings);
       }
@@ -34,9 +34,9 @@ export default function WelcomeSettings({ guildId }) {
   const fetchChannels = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/channels`, {
-        withCredentials: true
+        withCredentials: true,
       });
-      
+
       setChannels(response.data.channels || []);
       setLoading(false);
     } catch (err) {
@@ -51,9 +51,13 @@ export default function WelcomeSettings({ guildId }) {
     setSaveSuccess(false);
 
     try {
-      await axios.put(`/guilds/${guildId}/modules/welcome/settings`, {
-        settings
-      }, { withCredentials: true });
+      await axios.put(
+        `/guilds/${guildId}/modules/welcome/settings`,
+        {
+          settings,
+        },
+        { withCredentials: true }
+      );
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -67,9 +71,9 @@ export default function WelcomeSettings({ guildId }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -93,7 +97,8 @@ export default function WelcomeSettings({ guildId }) {
           className={styles.textarea}
         />
         <small className={styles.hint}>
-          Available placeholders: {"{user}"} (mentions the user), {"{username}"} (user's name), {"{server}"} (server name)
+          Available placeholders: {"{user}"} (mentions the user), {"{username}"}{" "}
+          (user's name), {"{server}"} (server name)
         </small>
       </div>
 
@@ -109,7 +114,7 @@ export default function WelcomeSettings({ guildId }) {
           className={styles.select}
         >
           <option value="">Select a channel...</option>
-          {channels.map(channel => (
+          {channels.map((channel) => (
             <option key={channel.id} value={channel.id}>
               # {channel.name}
             </option>
@@ -121,14 +126,10 @@ export default function WelcomeSettings({ guildId }) {
       </div>
 
       <div className={styles.buttonGroup}>
-        <button 
-          type="submit" 
-          disabled={saving}
-          className={styles.saveButton}
-        >
+        <button type="submit" disabled={saving} className={styles.saveButton}>
           {saving ? "Saving..." : "Save Settings"}
         </button>
-        
+
         {saveSuccess && (
           <span className={styles.successMessage}>
             ✓ Settings saved successfully!

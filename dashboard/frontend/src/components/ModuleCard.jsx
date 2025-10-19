@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/ModuleCard.module.css";
 
-export default function ModuleCard({ 
-  moduleId, 
-  title, 
-  description, 
-  enabled, 
+export default function ModuleCard({
+  moduleId,
+  title,
+  description,
+  enabled,
   onToggle,
-  guildId 
+  guildId,
 }) {
   const [isEnabled, setIsEnabled] = useState(enabled);
   const [isToggling, setIsToggling] = useState(false);
@@ -17,12 +17,12 @@ export default function ModuleCard({
   const handleToggle = async (e) => {
     e.stopPropagation();
     e.preventDefault();
-    
+
     if (isToggling) return; // Prevent double clicks
-    
+
     setIsToggling(true);
     const newState = !isEnabled;
-    
+
     try {
       await onToggle(newState);
       setIsEnabled(newState);
@@ -44,8 +44,8 @@ export default function ModuleCard({
           <h3 className={styles.title}>{title}</h3>
           <p className={styles.description}>{description}</p>
         </div>
-        
-        <div 
+
+        <div
           className={styles.toggleWrapper}
           onClick={(e) => e.stopPropagation()}
         >

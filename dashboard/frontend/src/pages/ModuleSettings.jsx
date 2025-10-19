@@ -13,26 +13,26 @@ export default function ModuleSettings() {
   const { user, guilds, loading } = useAuth();
 
   const renderModuleSettings = () => {
-    switch(moduleId) {
+    switch (moduleId) {
       case "welcome":
         return <WelcomeSettings guildId={guildId} />;
-      
+
       case "autorole":
         return <AutoRoleSettings guildId={guildId} />;
-      
+
       case "reactionroles":
         return <ReactionRolesSettings guildId={guildId} />;
-      
+
       case "worldboss":
         return <WorldBossSettings guildId={guildId} />;
-      
+
       case "leveling":
         return (
           <div>
             <p>Leveling settings coming soon...</p>
           </div>
         );
-      
+
       default:
         return (
           <div>
@@ -48,7 +48,7 @@ export default function ModuleSettings() {
       autorole: "Auto Role",
       reactionroles: "Reaction Roles",
       worldboss: "World Boss Notifier",
-      leveling: "Leveling System"
+      leveling: "Leveling System",
     };
     return titles[moduleId] || moduleId;
   };
@@ -60,18 +60,18 @@ export default function ModuleSettings() {
   return (
     <div className={styles.container}>
       <Navbar user={user} guilds={guilds} selectedGuildId={guildId} />
-     
+
       <div style={{ padding: "2rem" }}>
-        <button 
-          className={styles.button} 
-          onClick={() => navigate(`/guild/${guildId}`)} 
+        <button
+          className={styles.button}
+          onClick={() => navigate(`/guild/${guildId}`)}
           style={{ marginBottom: "1rem" }}
         >
           ← Back to Guild Settings
         </button>
-       
+
         <h1 style={{ marginBottom: "2rem" }}>{getModuleTitle()} Settings</h1>
-       
+
         {renderModuleSettings()}
       </div>
     </div>

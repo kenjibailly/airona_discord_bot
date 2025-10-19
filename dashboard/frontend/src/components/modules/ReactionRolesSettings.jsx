@@ -15,9 +15,9 @@ export default function ReactionRolesSettings({ guildId }) {
   const fetchReactionRoles = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/reaction-roles`, {
-        withCredentials: true
+        withCredentials: true,
       });
-      
+
       setReactionRoles(response.data.reactionRoles || []);
       setLoading(false);
     } catch (err) {
@@ -27,16 +27,23 @@ export default function ReactionRolesSettings({ guildId }) {
   };
 
   const handleDelete = async (reactionRoleId) => {
-    if (!confirm("Are you sure you want to delete this reaction role? This will remove all reactions from the message.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this reaction role? This will remove all reactions from the message."
+      )
+    ) {
       return;
     }
 
     try {
-      await axios.delete(`/guilds/${guildId}/reaction-roles/${reactionRoleId}`, {
-        withCredentials: true
-      });
-      
-      setReactionRoles(reactionRoles.filter(rr => rr._id !== reactionRoleId));
+      await axios.delete(
+        `/guilds/${guildId}/reaction-roles/${reactionRoleId}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      setReactionRoles(reactionRoles.filter((rr) => rr._id !== reactionRoleId));
     } catch (err) {
       console.error("Failed to delete reaction role:", err);
       alert("Failed to delete reaction role");
@@ -51,9 +58,11 @@ export default function ReactionRolesSettings({ guildId }) {
     <div className={styles.container}>
       <div className={styles.header}>
         <h2>Reaction Roles</h2>
-        <button 
+        <button
           className={styles.createButton}
-          onClick={() => navigate(`/guild/${guildId}/module/reactionroles/create`)}
+          onClick={() =>
+            navigate(`/guild/${guildId}/module/reactionroles/create`)
+          }
         >
           + Create New
         </button>
@@ -66,28 +75,44 @@ export default function ReactionRolesSettings({ guildId }) {
         </div>
       ) : (
         <div className={styles.list}>
-          {reactionRoles.map(rr => (
+          {reactionRoles.map((rr) => (
             <div key={rr._id} className={styles.card}>
               <div className={styles.cardContent}>
                 <h3>{rr.name}</h3>
                 <p className={styles.info}>
-                  <strong>Message:</strong> <a href={rr.messageLink} target="_blank" rel="noopener noreferrer">View Message</a>
+                  <strong>Message:</strong>{" "}
+                  <a
+                    href={rr.messageLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View Message
+                  </a>
                 </p>
                 <p className={styles.info}>
                   <strong>Reactions:</strong> {rr.reactions.length}
                 </p>
                 <p className={styles.info}>
-                  <strong>Type:</strong> {rr.type === "normal" ? "Normal" : rr.type === "add_only" ? "Add Only" : "Remove Only"}
+                  <strong>Type:</strong>{" "}
+                  {rr.type === "normal"
+                    ? "Normal"
+                    : rr.type === "add_only"
+                    ? "Add Only"
+                    : "Remove Only"}
                 </p>
               </div>
               <div className={styles.cardActions}>
-                <button 
+                <button
                   className={styles.editButton}
-                  onClick={() => navigate(`/guild/${guildId}/module/reactionroles/edit/${rr._id}`)}
+                  onClick={() =>
+                    navigate(
+                      `/guild/${guildId}/module/reactionroles/edit/${rr._id}`
+                    )
+                  }
                 >
                   Edit
                 </button>
-                <button 
+                <button
                   className={styles.deleteButton}
                   onClick={() => handleDelete(rr._id)}
                 >
