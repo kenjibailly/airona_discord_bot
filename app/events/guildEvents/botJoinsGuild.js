@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
-const deployCommands = require("./deploy-commands");
+const deployCommands = require("../../deploy-commands");
 
 async function botJoinsGuild(client, guild) {
   const guildId = guild.id;

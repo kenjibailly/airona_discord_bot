@@ -1,5 +1,5 @@
 const { Events } = require("discord.js");
-const botJoinsGuild = require("../bot_joins_guild");
+const botJoinsGuild = require("./guildEvents/botJoinsGuild");
 
 module.exports = {
   name: Events.GuildCreate,

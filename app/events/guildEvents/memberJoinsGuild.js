@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
-const GuildModule = require("./models/GuildModule");
+const GuildModule = require("../../models/GuildModule");
 
 async function memberJoinsGuild(member, guildId) {
   try {
