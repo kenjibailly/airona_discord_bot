@@ -9,6 +9,8 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .picker {
@@ -20,6 +22,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
 .header {
@@ -27,6 +30,7 @@
   border-bottom: 1px solid var(--secondary-color);
   display: flex;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .search {
@@ -50,6 +54,7 @@
   cursor: pointer;
   font-size: 1.2rem;
   color: white;
+  flex-shrink: 0;
 }
 
 .closeButton:hover {
@@ -123,4 +128,96 @@
   text-align: center;
   padding: 2rem;
   color: #666;
+}
+
+/* 📱 Mobile & Responsive Support */
+@media (max-width: 1024px) {
+  .picker {
+    max-width: 450px;
+    max-height: 550px;
+  }
+}
+
+@media (max-width: 768px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .picker {
+    width: 100%;
+    max-width: none;
+    max-height: 100%;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .header {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .search {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  .closeButton {
+    font-size: 1rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .categories {
+    padding: 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .categoryButton {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .emojiGrid {
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    gap: 0.4rem;
+    max-height: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .picker {
+    width: 100%;
+    max-height: 100%;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .search {
+    width: 100%;
+    font-size: 0.85rem;
+  }
+
+  .closeButton {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .categoryButton {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .emojiGrid {
+    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+    gap: 0.3rem;
+    padding: 0.75rem;
+  }
+
+  .emojiButton {
+    font-size: 1.3rem;
+  }
 }

@@ -98,6 +98,7 @@
   margin-bottom: 1rem;
 }
 
+/* Tablet */
 @media (max-width: 1024px) {
   .builderContainer {
     grid-template-columns: 1fr;
@@ -105,5 +106,73 @@
 
   .previewPanel {
     position: static;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .controls {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .controlGroup select,
+  .controlGroup input {
+    font-size: 0.9rem;
+    padding: 0.65rem;
+  }
+
+  .loadMessage {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .loadMessage button {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  .sendButton {
+    font-size: 1rem;
+    padding: 0.85rem;
+  }
+
+  .builderContainer {
+    gap: 1.5rem;
+  }
+
+  .previewPanel {
+    padding: 1rem;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .controls {
+    padding: 0.85rem;
+  }
+
+  .controlGroup label {
+    font-size: 0.9rem;
+  }
+
+  .controlGroup select,
+  .controlGroup input {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+
+  .loadMessage button {
+    font-size: 0.9rem;
+    padding: 0.7rem;
+  }
+
+  .sendButton {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+
+  .previewPanel {
+    padding: 0.85rem;
   }
 }

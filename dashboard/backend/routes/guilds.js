@@ -64,6 +64,13 @@ router.get(
           description: "Get notifications before world bosses spawn",
           category: "blueprotocol",
         },
+        {
+          id: "events",
+          title: "Events Notifier",
+          description:
+            "Get notifications for Boss events, Guild activities, and Leisure activities",
+          category: "blueprotocol",
+        },
       ];
 
       // Get module states from database

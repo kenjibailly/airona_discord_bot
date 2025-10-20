@@ -272,3 +272,101 @@
   margin-bottom: 1rem;
   font-size: 0.9rem;
 }
+
+/* -------- Responsive Adjustments -------- */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .editor {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .fieldWithButton,
+  .fieldWithCheckbox {
+    flex-wrap: wrap;
+  }
+
+  .addUrlButton,
+  .colorPickerButton,
+  .trashButton {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .editor {
+    padding: 0.85rem;
+  }
+
+  .section label,
+  .field label {
+    font-size: 0.85rem;
+  }
+
+  .section input,
+  .section textarea,
+  .field input,
+  .field textarea {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+
+  .fieldWithButton,
+  .fieldWithCheckbox {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .addUrlButton,
+  .colorPickerButton,
+  .trashButton {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 0.6rem;
+  }
+
+  .addButton,
+  .menuButton,
+  .secondaryButton {
+    font-size: 0.95rem;
+    padding: 0.7rem;
+  }
+
+  .componentHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .editor {
+    padding: 0.75rem;
+  }
+
+  .section label,
+  .field label {
+    font-size: 0.8rem;
+  }
+
+  .addButton,
+  .menuButton,
+  .secondaryButton {
+    font-size: 0.9rem;
+    padding: 0.65rem;
+  }
+
+  .info {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+}

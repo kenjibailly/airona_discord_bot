@@ -154,7 +154,7 @@ export default function GuildSettings() {
             <h2 style={{ marginBottom: "1rem", marginTop: "2rem" }}>
               Blue Protocol: Star Resonance
             </h2>
-            <div>
+            <div className={moduleCardStyles.cards}>
               {blueProtocolModules.map((module) => (
                 <ModuleCard
                   key={module.id}

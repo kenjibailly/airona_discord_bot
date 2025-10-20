@@ -125,3 +125,22 @@
   font-size: 0.9rem;
   line-height: 1.6;
 }
+
+.categorySection {
+  background: var(--secondary-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.categoryTitle {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.categorySection select,
+.formGroup .select {
+  margin-top: 0.75rem;
+  background-color: var(--tertiary-color);
+}

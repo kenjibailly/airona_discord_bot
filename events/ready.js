@@ -1,5 +1,6 @@
 const { Events } = require("discord.js");
 const { startWorldBossScheduler } = require("../schedulers/worldBossScheduler");
+const { startEventsScheduler } = require("./schedulers/eventsScheduler");
 
 module.exports = {
   name: Events.ClientReady,
@@ -8,5 +9,6 @@ module.exports = {
     logger.success(`Logged in as ${client.user.tag}!`);
     // Start world boss scheduler
     startWorldBossScheduler(client);
+    startEventsScheduler(client);
   },
 };

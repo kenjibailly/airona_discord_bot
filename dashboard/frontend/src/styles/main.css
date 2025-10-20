@@ -11,6 +11,10 @@
   --white2: #adadad;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   background-color: var(--main-color);
   color: white;

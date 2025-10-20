@@ -4,6 +4,7 @@ import WelcomeSettings from "../components/modules/WelcomeSettings";
 import AutoRoleSettings from "../components/modules/AutoRoleSettings";
 import ReactionRolesSettings from "../components/modules/ReactionRolesSettings";
 import WorldBossSettings from "../components/modules/WorldBossSettings";
+import EventsSettings from "../components/modules/EventsSettings";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
 
@@ -25,6 +26,9 @@ export default function ModuleSettings() {
 
       case "worldboss":
         return <WorldBossSettings guildId={guildId} />;
+
+      case "events":
+        return <EventsSettings guildId={guildId} />;
 
       case "leveling":
         return (
@@ -48,6 +52,7 @@ export default function ModuleSettings() {
       autorole: "Auto Role",
       reactionroles: "Reaction Roles",
       worldboss: "World Boss Notifier",
+      events: "Events Notifier",
       leveling: "Leveling System",
     };
     return titles[moduleId] || moduleId;

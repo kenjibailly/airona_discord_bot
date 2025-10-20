@@ -1,5 +1,7 @@
 .container {
   max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .header {
@@ -7,10 +9,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .header h2 {
   margin: 0;
+  font-size: 1.5rem;
 }
 
 .createButton {
@@ -22,6 +27,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .createButton:hover {
@@ -50,10 +56,17 @@
   justify-content: space-between;
   align-items: center;
   transition: box-shadow 0.2s;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cardContent {
+  flex: 1;
+  min-width: 200px;
 }
 
 .cardContent h3 {
@@ -79,6 +92,7 @@
 .cardActions {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .editButton,
@@ -89,6 +103,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 0.9rem;
 }
 
 .editButton {
@@ -107,4 +122,56 @@
 
 .deleteButton:hover {
   background: #c03537;
+}
+
+/* 📱 Mobile Support */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .createButton {
+    width: 100%;
+  }
+
+  .card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .header h2 {
+    font-size: 1.25rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .cardContent h3 {
+    font-size: 1rem;
+  }
+
+  .editButton,
+  .deleteButton {
+    flex: 1;
+    text-align: center;
+  }
+
+  .cardActions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }

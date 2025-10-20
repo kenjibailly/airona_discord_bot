@@ -2,19 +2,25 @@
   min-height: 100vh;
 }
 
+/* ─────────── Navbar ─────────── */
 .navBar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 1rem;
   border-bottom: 3px solid rgb(43, 41, 63);
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
+/* ─────────── Avatar ─────────── */
 .avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
 }
 
+/* ─────────── Buttons ─────────── */
 .button {
   background-color: #4b4372;
   border-radius: 5px;
@@ -22,12 +28,14 @@
   border: 1px solid var(--purple-color);
   padding: 5px 10px;
   cursor: pointer;
+  font-size: 0.9rem;
 }
 
 .button:hover {
   background: var(--purple-color2);
 }
 
+/* ─────────── Dropdown / Select ─────────── */
 .select {
   padding: 0.75rem;
   border: none;
@@ -37,6 +45,8 @@
   box-sizing: border-box;
   background-color: var(--tertiary-color);
   color: white;
+  width: 100%;
+  max-width: 250px;
 }
 
 .dropdown {
@@ -93,4 +103,51 @@
   height: 24px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+/* ─────────── Mobile Responsiveness ─────────── */
+@media (max-width: 768px) {
+  .navBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dropdown {
+    width: 100%;
+  }
+
+  .button {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+  }
+
+  .selected {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .navBar {
+    padding: 0.75rem;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .button {
+    font-size: 0.85rem;
+    padding: 8px;
+  }
+
+  .dropdown {
+    width: 100%;
+  }
+
+  .menu {
+    max-height: 150px;
+  }
 }
