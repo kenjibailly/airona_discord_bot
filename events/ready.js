@@ -1,6 +1,6 @@
 const { Events } = require("discord.js");
 const { startWorldBossScheduler } = require("../schedulers/worldBossScheduler");
-const { startEventsScheduler } = require("./schedulers/eventsScheduler");
+const { startEventsScheduler } = require("../schedulers/eventsScheduler");
 
 module.exports = {
   name: Events.ClientReady,
