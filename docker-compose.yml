@@ -1,17 +1,17 @@
 ---
 services:
   discord_bot_airona:
-    build: ./
+    build: ./app
     container_name: discord_bot_airona
     restart: unless-stopped
     command: "nodemon bot.js"
     volumes:
-      - ./:/home/ubuntu/airona/
+      - ./app:/home/ubuntu/airona
       - /home/ubuntu/airona/node_modules
     env_file:
       - .env
     ports:
-      - "3000:3000" # expose dashboard
+      - "3000:3000"
     networks:
       - docker_swag
 
@@ -41,7 +41,7 @@ services:
     command: sh -c "cd /app/frontend && npm run dev -- --host & cd /app/backend && npm run dev"
     ports:
       - 8090:8080
-      - 5173:5173  # vite dev server
+      - 5173:5173
     environment:
       - MONGO_URI=mongodb://discord_bot_airona_db:27017/airona
       - DISCORD_CLIENT_ID=${APP_ID}
@@ -55,7 +55,7 @@ services:
       - /app/node_modules
       - /app/backend/node_modules
       - /app/frontend/node_modules
-      - /app/frontend/dist  # Keep the built dist from container
+      - /app/frontend/dist
     env_file:
       - .env
     networks:
