@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    allowedHosts: ["airona.mindglowing.art", "localhost", "127.0.0.1"],
+    allowedHosts: ["airona-dev.mindglowing.art", "localhost", "127.0.0.1"],
     proxy: {
       "/auth": {
         target: "http://localhost:8080",
