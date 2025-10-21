@@ -1,89 +1,43 @@
 const cron = require("node-cron");
+const fs = require("fs");
+const path = require("path");
 const GuildModule = require("../models/GuildModule");
 
-// All times are in UTC-2 (which is UTC+2 hours to convert TO UTC-2)
-// So we need to add 2 hours to the times to get UTC
-const EVENTS = {
-  boss: [
-    {
-      name: "World Boss Crusade",
-      startTime: { hour: 20, minute: 0 }, // 20:00 UTC-2 = 22:00 UTC
-      endTime: { hour: 2, minute: 0 }, // 02:00 UTC-2 = 04:00 UTC (next day)
-      days: [0, 1, 2, 3, 4, 5, 6], // Every day
-      duration: 360, // 6 hours
-    },
-  ],
-  guildActivity: [
-    {
-      name: "Guild Hunt",
-      startTime: { hour: 14, minute: 0 }, // 14:00 UTC-2 = 16:00 UTC
-      endTime: { hour: 4, minute: 0 }, // 04:00 UTC-2 = 06:00 UTC (next day)
-      days: [5, 6, 0], // Friday, Saturday, Sunday
-      duration: 840, // 14 hours
-    },
-    {
-      name: "Guild Dance",
-      startTime: { hour: 15, minute: 30 }, // 15:30 UTC-2 = 17:30 UTC
-      endTime: { hour: 3, minute: 30 }, // 03:30 UTC-2 = 05:30 UTC (next day)
-      days: [5], // Friday
-      duration: 720, // 12 hours
-    },
-  ],
-  leisure: [
-    {
-      name: "Muku Camp Patrol",
-      times: [
-        { hour: 13, minute: 45 }, // 13:45 UTC-2 = 15:45 UTC
-        { hour: 18, minute: 45 }, // 18:45 UTC-2 = 20:45 UTC
-        { hour: 23, minute: 45 }, // 23:45 UTC-2 = 01:45 UTC (next day)
-      ],
-      days: [0, 1, 2, 3, 4, 5, 6],
-      duration: null, // Unknown duration
-    },
-    {
-      name: "Ancient City Patrol",
-      times: [
-        { hour: 11, minute: 15 }, // 11:15 UTC-2 = 13:15 UTC
-        { hour: 16, minute: 15 }, // 16:15 UTC-2 = 18:15 UTC
-        { hour: 21, minute: 15 }, // 21:15 UTC-2 = 23:15 UTC
-      ],
-      days: [0, 1, 2, 3, 4, 5, 6],
-      duration: null,
-    },
-    {
-      name: "Brigand Camp Patrol",
-      times: [
-        { hour: 12, minute: 45 }, // 12:45 UTC-2 = 14:45 UTC
-        { hour: 17, minute: 45 }, // 17:45 UTC-2 = 19:45 UTC
-        { hour: 22, minute: 45 }, // 22:45 UTC-2 = 00:45 UTC (next day)
-      ],
-      days: [0, 1, 2, 3, 4, 5, 6],
-      duration: null,
-    },
-    {
-      name: "Dance Novice",
-      times: [
-        { hour: 15, minute: 0 }, // 15:00 UTC-2 = 17:00 UTC
-        { hour: 17, minute: 0 }, // 17:00 UTC-2 = 19:00 UTC
-        { hour: 20, minute: 0 }, // 20:00 UTC-2 = 22:00 UTC
-        { hour: 23, minute: 0 }, // 23:00 UTC-2 = 01:00 UTC (next day)
-      ],
-      days: [1, 3, 5, 0], // Monday, Wednesday, Friday, Sunday
-      duration: 60, // 1 hour
-    },
-    {
-      name: "Street Theater",
-      times: [
-        { hour: 15, minute: 0 },
-        { hour: 17, minute: 0 },
-        { hour: 20, minute: 0 },
-        { hour: 23, minute: 0 },
-      ],
-      days: [2, 4, 6, 0], // Tuesday, Thursday, Saturday, Sunday
-      duration: 60,
-    },
-  ],
-};
+// Load events from JSON file
+// Try multiple possible paths for different environments
+const POSSIBLE_PATHS = [
+  path.join(__dirname, "..", "config", "events.json"), // Standard path
+  path.join(process.cwd(), "config", "events.json"), // From root
+];
+
+let EVENTS = {};
+let EVENTS_FILE = null;
+
+function loadEvents() {
+  for (const filePath of POSSIBLE_PATHS) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath, "utf8");
+        EVENTS = JSON.parse(data);
+        EVENTS_FILE = filePath;
+        logger.success(`Events loaded from ${filePath}`);
+        return;
+      }
+    } catch (error) {
+      // Try next path
+      continue;
+    }
+  }
+
+  // If we get here, no file was found
+  logger.error("Could not find events.json in any expected location");
+  logger.info("Tried paths:", POSSIBLE_PATHS);
+  // Fallback to empty events object
+  EVENTS = { boss: [], guildActivity: [], leisure: [] };
+}
+
+// Load events on startup
+loadEvents();
 
 function hexToDecimal(hex) {
   return parseInt(hex.replace("#", ""), 16);
@@ -229,7 +183,7 @@ async function checkEvents(client) {
       const currentMinute = now.getUTCMinutes();
 
       // Check Boss Events
-      if (module.settings.bossRoleId) {
+      if (module.settings.bossRoleId && EVENTS.boss) {
         const minutesBefore = module.settings.bossMinutesBefore || 5;
 
         for (const event of EVENTS.boss) {
@@ -260,7 +214,7 @@ async function checkEvents(client) {
       }
 
       // Check Guild Activities
-      if (module.settings.guildActivityRoleId) {
+      if (module.settings.guildActivityRoleId && EVENTS.guildActivity) {
         const minutesBefore = module.settings.guildActivityMinutesBefore || 5;
 
         for (const event of EVENTS.guildActivity) {
@@ -291,7 +245,7 @@ async function checkEvents(client) {
       }
 
       // Check Leisure Activities
-      if (module.settings.leisureRoleId) {
+      if (module.settings.leisureRoleId && EVENTS.leisure) {
         const minutesBefore = module.settings.leisureMinutesBefore || 5;
 
         for (const event of EVENTS.leisure) {
@@ -335,4 +289,9 @@ function startEventsScheduler(client) {
   logger.success("Events scheduler started");
 }
 
-module.exports = { startEventsScheduler };
+// Export function to reload events (useful for updating without restart)
+function reloadEvents() {
+  loadEvents();
+}
+
+module.exports = { startEventsScheduler, reloadEvents };

@@ -15,6 +15,7 @@ export default function EventsSettings({ guildId }) {
   });
   const [roles, setRoles] = useState([]);
   const [channels, setChannels] = useState([]);
+  const [events, setEvents] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -23,6 +24,7 @@ export default function EventsSettings({ guildId }) {
     fetchSettings();
     fetchRoles();
     fetchChannels();
+    fetchEvents();
   }, [guildId]);
 
   const fetchSettings = async () => {
@@ -66,6 +68,17 @@ export default function EventsSettings({ guildId }) {
       setChannels(response.data.channels || []);
     } catch (err) {
       console.error("Failed to fetch channels:", err);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get(`/events`, {
+        withCredentials: true,
+      });
+      setEvents(response.data.events || null);
+    } catch (err) {
+      console.error("Failed to fetch events:", err);
     }
   };
 
@@ -165,6 +178,93 @@ export default function EventsSettings({ guildId }) {
         >
           {roles.find((r) => r.id === roleId)?.name || "Unknown Role"}
         </span>
+      </div>
+    );
+  };
+
+  const formatTime = (hour, minute) => {
+    return `${hour.toString().padStart(2, "0")}:${minute
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const getDayNames = (days) => {
+    const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    if (days.length === 7) return "Every day";
+    return days.map((d) => dayMap[d]).join(", ");
+  };
+
+  const renderEventSchedule = () => {
+    if (!events) {
+      return (
+        <div className={styles.infoBox}>
+          <p>Loading event schedule...</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.infoBox}>
+        <h4>📅 Event Schedule (All times in UTC-2):</h4>
+
+        <div style={{ marginTop: "0.5rem" }}>
+          {/* Boss Events */}
+          {events.boss && events.boss.length > 0 && (
+            <>
+              <strong>🔥 Boss Events:</strong>
+              <ul style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
+                {events.boss.map((event, idx) => (
+                  <li key={idx}>
+                    {event.name}:{" "}
+                    {formatTime(event.startTime.hour, event.startTime.minute)} -{" "}
+                    {formatTime(event.endTime.hour, event.endTime.minute)} (
+                    {getDayNames(event.days)})
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {/* Guild Activities */}
+          {events.guildActivity && events.guildActivity.length > 0 && (
+            <>
+              <strong>⚔️ Guild Activities:</strong>
+              <ul style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
+                {events.guildActivity.map((event, idx) => (
+                  <li key={idx}>
+                    {event.name}:{" "}
+                    {formatTime(event.startTime.hour, event.startTime.minute)} -{" "}
+                    {formatTime(event.endTime.hour, event.endTime.minute)} (
+                    {getDayNames(event.days)})
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {/* Leisure Activities */}
+          {events.leisure && events.leisure.length > 0 && (
+            <>
+              <strong>🎯 Leisure Activities:</strong>
+              <ul style={{ marginTop: "0.25rem" }}>
+                {events.leisure.map((event, idx) => (
+                  <li key={idx}>
+                    {event.name}:{" "}
+                    {event.times
+                      .map((t) => formatTime(t.hour, t.minute))
+                      .join(", ")}{" "}
+                    ({getDayNames(event.days)})
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+
+        <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "#666" }}>
+          ℹ️ Times are displayed using Discord timestamps, which automatically
+          convert to each user's local timezone.
+        </p>
       </div>
     );
   };
@@ -393,46 +493,7 @@ export default function EventsSettings({ guildId }) {
         <small>Color of the notification embed</small>
       </div>
 
-      <div className={styles.infoBox}>
-        <h4>📅 Event Schedule (All times in UTC-2):</h4>
-
-        <div style={{ marginTop: "0.5rem" }}>
-          <strong>🔥 Boss Events:</strong>
-          <ul style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
-            <li>World Boss Crusade: 20:00 - 02:00 (Every day)</li>
-          </ul>
-
-          <strong>⚔️ Guild Activities:</strong>
-          <ul style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
-            <li>Guild Hunt: 14:00 - 04:00 (Friday, Saturday, Sunday)</li>
-            <li>Guild Dance: 15:30 - 03:30 (Friday)</li>
-          </ul>
-
-          <strong>🎯 Leisure Activities:</strong>
-          <ul style={{ marginTop: "0.25rem" }}>
-            <li>Muku Camp Patrol: 13:45, 18:45, 23:45 (Every day)</li>
-            <li>Ancient City Patrol: 11:15, 16:15, 21:15 (Every day)</li>
-            <li>Brigand Camp Patrol: 12:45, 17:45, 22:45 (Every day)</li>
-            <li>
-              Dance Novice: 15:00-16:00, 17:00-18:00, 20:00-21:00, 23:00-24:00
-              (Mon, Wed, Fri, Sun)
-            </li>
-            <li>
-              Street Theater: 15:00-16:00, 17:00-18:00, 20:00-21:00, 23:00-24:00
-              (Tue, Thu, Sat, Sun)
-            </li>
-            <li>
-              Starlight Fireworks: 20:20, 20:44, 21:08, 21:32, 21:56 (Limited
-              time events)
-            </li>
-          </ul>
-        </div>
-
-        <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "#666" }}>
-          ℹ️ Times are displayed using Discord timestamps, which automatically
-          convert to each user's local timezone.
-        </p>
-      </div>
+      {renderEventSchedule()}
 
       <div className={styles.buttonGroup}>
         <button type="submit" disabled={saving} className={styles.saveButton}>

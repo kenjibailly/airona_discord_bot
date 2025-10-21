@@ -1,0 +1,81 @@
+{
+  "boss": [
+    {
+      "name": "World Boss Crusade",
+      "startTime": { "hour": 16, "minute": 0 },
+      "endTime": { "hour": 2, "minute": 0 },
+      "days": [0, 1, 2, 3, 4, 5, 6],
+      "duration": 360
+    }
+  ],
+  "guildActivity": [
+    {
+      "name": "Guild Hunt",
+      "startTime": { "hour": 14, "minute": 0 },
+      "endTime": { "hour": 4, "minute": 0 },
+      "days": [5, 6, 0],
+      "duration": 840
+    },
+    {
+      "name": "Guild Dance",
+      "startTime": { "hour": 15, "minute": 30 },
+      "endTime": { "hour": 3, "minute": 30 },
+      "days": [5],
+      "duration": 720
+    }
+  ],
+  "leisure": [
+    {
+      "name": "Muku Camp Patrol",
+      "times": [
+        { "hour": 13, "minute": 45 },
+        { "hour": 18, "minute": 45 },
+        { "hour": 23, "minute": 45 }
+      ],
+      "days": [0, 1, 2, 3, 4, 5, 6],
+      "duration": null
+    },
+    {
+      "name": "Ancient City Patrol",
+      "times": [
+        { "hour": 11, "minute": 15 },
+        { "hour": 16, "minute": 15 },
+        { "hour": 21, "minute": 15 }
+      ],
+      "days": [0, 1, 2, 3, 4, 5, 6],
+      "duration": null
+    },
+    {
+      "name": "Brigand Camp Patrol",
+      "times": [
+        { "hour": 12, "minute": 45 },
+        { "hour": 17, "minute": 45 },
+        { "hour": 22, "minute": 45 }
+      ],
+      "days": [0, 1, 2, 3, 4, 5, 6],
+      "duration": null
+    },
+    {
+      "name": "Dance Novice",
+      "times": [
+        { "hour": 15, "minute": 0 },
+        { "hour": 17, "minute": 0 },
+        { "hour": 20, "minute": 0 },
+        { "hour": 23, "minute": 0 }
+      ],
+      "days": [1, 3, 5, 0],
+      "duration": 60
+    },
+    {
+      "name": "Street Theater",
+      "times": [
+        { "hour": 15, "minute": 0 },
+        { "hour": 17, "minute": 0 },
+        { "hour": 20, "minute": 0 },
+        { "hour": 23, "minute": 0 }
+      ],
+      "days": [2, 4, 6, 0],
+      "duration": 60
+    }
+  ]
+}

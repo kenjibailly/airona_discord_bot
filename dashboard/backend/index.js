@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 const authRoutes = require("./routes/auth");
 const guildRoutes = require("./routes/guilds");
+const eventRoutes = require("./routes/events");
 
 const app = express();
 const PORT = process.env.DASHBOARD_PORT || 8080;
@@ -89,6 +90,7 @@ mongoose
 // API Routes - these must come BEFORE static file serving
 app.use("/auth", authRoutes);
 app.use("/guilds", guildRoutes);
+app.use("/events", eventRoutes);
 
 // Serve static files from the frontend build
 app.use(express.static(path.join(__dirname, "../frontend/dist")));

@@ -8,13 +8,13 @@ services:
     volumes:
       - ./app:/home/ubuntu/airona
       - /home/ubuntu/airona/node_modules
+      - ./config/events.json:/home/ubuntu/airona/config/events.json:ro
     env_file:
       - .env
     ports:
       - "3000:3000"
     networks:
       - docker_swag
-
   discord_bot_airona_db:
     image: mongo
     container_name: discord_bot_airona_db
@@ -33,7 +33,6 @@ services:
       - .env
     networks:
       - docker_swag
-
   discord_dashboard_airona:
     build: ./dashboard
     container_name: discord_dashboard_airona
@@ -56,11 +55,11 @@ services:
       - /app/backend/node_modules
       - /app/frontend/node_modules
       - /app/frontend/dist
+      - ./config/events.json:/app/backend/config/events.json:ro
     env_file:
       - .env
     networks:
       - docker_swag
-
 networks:
   docker_swag:
     external: true

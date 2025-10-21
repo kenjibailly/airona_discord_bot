@@ -25,6 +25,19 @@ const WORLD_BOSSES = {
   ],
 };
 
+const SPECIAL_BOSSES = [
+  {
+    name: "Lovely Boarlet",
+    level: 1,
+    times: ["10:00", "14:00", "18:00"],
+  },
+  {
+    name: "Breezy Boarlet",
+    level: 1,
+    times: ["12:00", "16:00", "20:00"],
+  },
+];
+
 export default function WorldBossSettings({ guildId }) {
   const [settings, setSettings] = useState({
     roleId: "",
@@ -263,7 +276,7 @@ export default function WorldBossSettings({ guildId }) {
       </div>
 
       <div className={styles.infoBox}>
-        <h4>Boss Spawn Times:</h4>
+        <h4>⚔️ Boss Spawn Times:</h4>
         <div style={{ marginTop: "0.5rem" }}>
           <strong>Every hour at XX:00:</strong>
           <ul style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
@@ -274,14 +287,26 @@ export default function WorldBossSettings({ guildId }) {
             ))}
           </ul>
           <strong>Every hour at XX:30:</strong>
-          <ul style={{ marginTop: "0.25rem" }}>
+          <ul style={{ marginTop: "0.25rem", marginBottom: "0.75rem" }}>
             {WORLD_BOSSES["30"].map((boss, i) => (
               <li key={i}>
                 {boss.name} (Lv. {boss.level})
               </li>
             ))}
           </ul>
+          <strong>🐗 Special Bosses:</strong>
+          <ul style={{ marginTop: "0.25rem" }}>
+            {SPECIAL_BOSSES.map((boss, i) => (
+              <li key={i}>
+                {boss.name} (Lv. {boss.level}) - {boss.times.join(", ")}
+              </li>
+            ))}
+          </ul>
         </div>
+        <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "#666" }}>
+          ℹ️ All times are displayed in your local timezone via Discord
+          timestamps.
+        </p>
       </div>
 
       <div className={styles.buttonGroup}>

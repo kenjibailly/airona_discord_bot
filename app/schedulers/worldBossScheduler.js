@@ -24,6 +24,28 @@ const WORLD_BOSSES = {
   ],
 };
 
+// Special timed bosses (specific hours and minutes)
+const SPECIAL_BOSSES = [
+  {
+    name: "Lovely Boarlet",
+    level: "1",
+    times: [
+      { hour: 10, minute: 0 },
+      { hour: 14, minute: 0 },
+      { hour: 18, minute: 0 },
+    ],
+  },
+  {
+    name: "Breezy Boarlet",
+    level: "1",
+    times: [
+      { hour: 12, minute: 0 },
+      { hour: 16, minute: 0 },
+      { hour: 20, minute: 0 },
+    ],
+  },
+];
+
 function hexToDecimal(hex) {
   return parseInt(hex.replace("#", ""), 16);
 }
@@ -111,6 +133,85 @@ async function sendBossNotification(
   }
 }
 
+async function sendSpecialBossNotification(
+  client,
+  guildId,
+  settings,
+  boss,
+  spawnTime
+) {
+  try {
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) {
+      logger.warn(`Guild ${guildId} not found for special boss notification`);
+      return;
+    }
+
+    const channel = guild.channels.cache.get(settings.channelId);
+    if (!channel) {
+      logger.warn(
+        `Channel ${settings.channelId} not found in guild ${guild.name}`
+      );
+      return;
+    }
+
+    const role = guild.roles.cache.get(settings.roleId);
+    const roleMention = role ? `<@&${role.id}>` : "@everyone";
+
+    // Calculate exact spawn time
+    const now = new Date();
+    const spawnDate = new Date(now);
+    spawnDate.setHours(spawnTime.hour);
+    spawnDate.setMinutes(spawnTime.minute);
+    spawnDate.setSeconds(0);
+
+    // If spawn time has passed today, it's tomorrow
+    if (spawnDate <= now) {
+      spawnDate.setDate(spawnDate.getDate() + 1);
+    }
+
+    const timeRemaining = Math.round((spawnDate - now) / 1000 / 60);
+
+    const embed = {
+      title: "🐗 Special Boss Alert!",
+      description: `**${boss.name}** is spawning in **${timeRemaining} minute${
+        timeRemaining !== 1 ? "s" : ""
+      }**!`,
+      color: hexToDecimal(settings.embedColor || "#ff6b00"),
+      fields: [
+        {
+          name: "Boss",
+          value: `• **${boss.name}** (Lv. ${boss.level})`,
+          inline: false,
+        },
+        {
+          name: "Spawn Time",
+          value: `<t:${Math.floor(
+            spawnDate.getTime() / 1000
+          )}:t> (<t:${Math.floor(spawnDate.getTime() / 1000)}:R>)`,
+          inline: true,
+        },
+      ],
+      footer: {
+        text: "Blue Protocol: Star Resonance",
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    await channel.send({
+      content: `${roleMention} Special boss incoming!`,
+      embeds: [embed],
+    });
+
+    logger.success(`Sent ${boss.name} notification to ${guild.name}`);
+  } catch (error) {
+    logger.error(
+      `Error sending special boss notification to guild ${guildId}:`,
+      error
+    );
+  }
+}
+
 async function checkAndNotify(client, spawnMinute) {
   try {
     // Find all guilds with world boss module enabled
@@ -149,6 +250,58 @@ async function checkAndNotify(client, spawnMinute) {
   }
 }
 
+async function checkSpecialBosses(client) {
+  try {
+    const activeModules = await GuildModule.find({
+      moduleId: "worldboss",
+      enabled: true,
+    });
+
+    for (const module of activeModules) {
+      if (!module.settings.roleId || !module.settings.channelId) {
+        continue;
+      }
+
+      const minutesBefore = module.settings.minutesBefore || 5;
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      // Check each special boss
+      for (const boss of SPECIAL_BOSSES) {
+        for (const spawnTime of boss.times) {
+          // Calculate notification time
+          const notifyTime = new Date(now);
+          notifyTime.setHours(spawnTime.hour);
+          notifyTime.setMinutes(spawnTime.minute - minutesBefore);
+
+          // Adjust if notification time crosses hour boundary
+          if (notifyTime.getMinutes() < 0) {
+            notifyTime.setHours(notifyTime.getHours() - 1);
+            notifyTime.setMinutes(60 + notifyTime.getMinutes());
+          }
+
+          // Check if current time matches notification time
+          if (
+            currentHour === notifyTime.getHours() &&
+            currentMinute === notifyTime.getMinutes()
+          ) {
+            await sendSpecialBossNotification(
+              client,
+              module.guildId,
+              module.settings,
+              boss,
+              spawnTime
+            );
+          }
+        }
+      }
+    }
+  } catch (error) {
+    logger.error("Error checking special bosses:", error);
+  }
+}
+
 function startWorldBossScheduler(client) {
   // Run every minute to check if we need to send notifications
   cron.schedule("* * * * *", async () => {
@@ -157,6 +310,9 @@ function startWorldBossScheduler(client) {
 
     // Check for XX:30 spawns
     await checkAndNotify(client, 30);
+
+    // Check for special timed bosses
+    await checkSpecialBosses(client);
   });
 
   logger.success("World Boss scheduler started");
