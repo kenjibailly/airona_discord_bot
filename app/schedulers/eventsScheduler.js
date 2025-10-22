@@ -86,23 +86,28 @@ async function sendEventNotification(
       roleId = settings.guildActivityRoleId;
     else if (category === "leisure") roleId = settings.leisureRoleId;
 
-    if (!roleId) return; // No role configured for this category
+    // If no role is configured, send message without ping
+    let roleMention = "";
+    if (roleId) {
+      const role = guild.roles.cache.get(roleId);
+      roleMention = role ? `<@&${role.id}>` : "";
+    }
 
-    const role = guild.roles.cache.get(roleId);
-    const roleMention = role ? `<@&${role.id}>` : "@everyone";
-
-    // Calculate event start time in UTC-2 timezone
+    // Calculate event start time
+    // eventTime is in UTC-2, so we need to convert it to UTC
+    const utcTime = convertToUTC(eventTime.hour, eventTime.minute);
     const now = new Date();
     const eventDate = new Date(now);
 
-    // Set to UTC-2 time
-    eventDate.setUTCHours(eventTime.hour + 2); // Convert UTC-2 to UTC
-    eventDate.setUTCMinutes(eventTime.minute);
+    // Set to UTC time (already converted from UTC-2)
+    eventDate.setUTCHours(utcTime.hour);
+    eventDate.setUTCMinutes(utcTime.minute);
     eventDate.setUTCSeconds(0);
+    eventDate.setUTCMilliseconds(0);
 
     // If the event time has passed today, it's tomorrow
     if (eventDate <= now) {
-      eventDate.setDate(eventDate.getDate() + 1);
+      eventDate.setUTCDate(eventDate.getUTCDate() + 1);
     }
 
     const timeRemaining = Math.round((eventDate - now) / 1000 / 60);
