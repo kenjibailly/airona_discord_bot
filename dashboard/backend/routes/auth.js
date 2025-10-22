@@ -94,10 +94,10 @@ router.get("/callback", async (req, res) => {
 });
 
 router.get("/session", (req, res) => {
-  console.log(
-    "Session check - User:",
-    req.session.user ? "EXISTS" : "NOT FOUND"
-  );
+  // console.log(
+  //   "Session check - User:",
+  //   req.session.user ? "EXISTS" : "NOT FOUND"
+  // );
 
   if (!req.session.user) {
     return res.status(401).json({ error: "Not authenticated" });
@@ -107,6 +107,37 @@ router.get("/session", (req, res) => {
     user: req.session.user,
     guilds: req.session.guilds || [],
   });
+});
+
+router.post("/refresh-guilds", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    // Fetch fresh guilds from Discord API
+    const response = await axios.get(
+      "https://discord.com/api/users/@me/guilds",
+      {
+        headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` },
+      }
+    );
+
+    // Filter guilds where user has admin permissions
+    const adminGuilds = response.data.filter(
+      (guild) => (guild.permissions & 0x8) === 0x8
+    );
+
+    // Update session with fresh guilds
+    req.session.guilds = adminGuilds;
+
+    res.json({
+      guilds: adminGuilds,
+    });
+  } catch (error) {
+    console.error("Error refreshing guilds:", error);
+    res.status(500).json({ error: "Failed to refresh guilds" });
+  }
 });
 
 router.get("/logout", (req, res) => {

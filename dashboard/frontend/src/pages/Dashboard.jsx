@@ -16,7 +16,20 @@ export default function Dashboard() {
       <div style={{ padding: "2rem" }}>
         <h1>Welcome to your Dashboard!</h1>
         {guilds.length > 0 ? (
-          <p>Select a server from the dropdown to configure its settings.</p>
+          <div>
+            <p>Select a server from the dropdown to configure its settings.</p>
+            <p>
+              <a
+                href={`https://discord.com/api/oauth2/authorize?client_id=${
+                  import.meta.env.VITE_DISCORD_CLIENT_ID
+                }&permissions=8&scope=bot`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Click here to invite the bot to your server
+              </a>
+            </p>
+          </div>
         ) : (
           <div>
             <p>No servers available to manage.</p>

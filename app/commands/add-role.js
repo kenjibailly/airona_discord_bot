@@ -60,7 +60,7 @@ module.exports = {
 
       await interaction.reply({
         embeds: [embed],
-        ephemeral: false,
+        ephemeral: true,
       });
     } catch (error) {
       logger.error("Error assigning role:", error);
