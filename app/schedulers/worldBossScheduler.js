@@ -28,7 +28,7 @@ const WORLD_BOSSES = {
 const SPECIAL_BOSSES = [
   {
     name: "Lovely Boarlet",
-    level: "1",
+    level: "??",
     times: [
       { hour: 10, minute: 0 },
       { hour: 14, minute: 0 },
@@ -37,7 +37,7 @@ const SPECIAL_BOSSES = [
   },
   {
     name: "Breezy Boarlet",
-    level: "1",
+    level: "??",
     times: [
       { hour: 12, minute: 0 },
       { hour: 16, minute: 0 },
@@ -72,8 +72,12 @@ async function sendBossNotification(
       return;
     }
 
-    const role = guild.roles.cache.get(settings.roleId);
-    const roleMention = role ? `<@&${role.id}>` : "@everyone";
+    // If no role is configured, send message without ping
+    let roleMention = "";
+    if (settings.roleId) {
+      const role = guild.roles.cache.get(settings.roleId);
+      roleMention = role ? `<@&${role.id}>` : "";
+    }
 
     // Get current time and calculate spawn time
     const now = new Date();
@@ -120,7 +124,9 @@ async function sendBossNotification(
     };
 
     await channel.send({
-      content: `${roleMention} World bosses incoming!`,
+      content: roleMention
+        ? `${roleMention} World bosses incoming!`
+        : "⚔️ World bosses incoming!",
       embeds: [embed],
     });
 

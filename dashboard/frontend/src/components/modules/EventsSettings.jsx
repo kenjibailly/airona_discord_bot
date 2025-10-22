@@ -90,36 +90,23 @@ export default function EventsSettings({ guildId }) {
       return;
     }
 
-    if (
-      !settings.bossRoleId &&
-      !settings.guildActivityRoleId &&
-      !settings.leisureRoleId
-    ) {
-      alert("Please select at least one role for notifications");
-      return;
-    }
-
-    // Validate minutes before for enabled categories
-    if (
-      settings.bossRoleId &&
-      (settings.bossMinutesBefore < 1 || settings.bossMinutesBefore > 60)
-    ) {
+    // Validate minutes before (always validate, even if no role is set)
+    if (settings.bossMinutesBefore < 1 || settings.bossMinutesBefore > 60) {
       alert("Boss events: Minutes before event must be between 1 and 60");
       return;
     }
 
     if (
-      settings.guildActivityRoleId &&
-      (settings.guildActivityMinutesBefore < 1 ||
-        settings.guildActivityMinutesBefore > 60)
+      settings.guildActivityMinutesBefore < 1 ||
+      settings.guildActivityMinutesBefore > 60
     ) {
       alert("Guild activities: Minutes before event must be between 1 and 60");
       return;
     }
 
     if (
-      settings.leisureRoleId &&
-      (settings.leisureMinutesBefore < 1 || settings.leisureMinutesBefore > 60)
+      settings.leisureMinutesBefore < 1 ||
+      settings.leisureMinutesBefore > 60
     ) {
       alert(
         "Leisure activities: Minutes before event must be between 1 and 60"
@@ -300,7 +287,7 @@ export default function EventsSettings({ guildId }) {
         <h3 className={styles.categoryTitle}>🔥 Boss Events</h3>
 
         <div className={styles.formGroup}>
-          <label htmlFor="bossRoleId">Role to Ping</label>
+          <label htmlFor="bossRoleId">Role to Ping (Optional)</label>
           <select
             id="bossRoleId"
             name="bossRoleId"
@@ -308,7 +295,7 @@ export default function EventsSettings({ guildId }) {
             onChange={handleChange}
             className={styles.select}
           >
-            <option value="">No role (no notifications for boss events)</option>
+            <option value="">No role (notifications without ping)</option>
             {roles.map((role) => (
               <option
                 key={role.id}
@@ -322,30 +309,30 @@ export default function EventsSettings({ guildId }) {
               </option>
             ))}
           </select>
+          <small>
+            Select a role to ping, or leave empty to send notifications without
+            pinging
+          </small>
         </div>
 
-        {settings.bossRoleId && (
-          <>
-            {renderRolePreview(settings.bossRoleId, "Selected Role")}
+        {renderRolePreview(settings.bossRoleId, "Selected Role")}
 
-            <div className={styles.formGroup}>
-              <label htmlFor="bossMinutesBefore">Minutes Before Event</label>
-              <input
-                className={styles.select}
-                id="bossMinutesBefore"
-                name="bossMinutesBefore"
-                type="number"
-                min="1"
-                max="60"
-                value={settings.bossMinutesBefore}
-                onChange={handleChange}
-              />
-              <small>
-                How many minutes before boss events to send notification (1-60)
-              </small>
-            </div>
-          </>
-        )}
+        <div className={styles.formGroup}>
+          <label htmlFor="bossMinutesBefore">Minutes Before Event</label>
+          <input
+            className={styles.select}
+            id="bossMinutesBefore"
+            name="bossMinutesBefore"
+            type="number"
+            min="1"
+            max="60"
+            value={settings.bossMinutesBefore}
+            onChange={handleChange}
+          />
+          <small>
+            How many minutes before boss events to send notification (1-60)
+          </small>
+        </div>
       </div>
 
       {/* Guild Activities Section */}
@@ -353,7 +340,7 @@ export default function EventsSettings({ guildId }) {
         <h3 className={styles.categoryTitle}>⚔️ Guild Activities</h3>
 
         <div className={styles.formGroup}>
-          <label htmlFor="guildActivityRoleId">Role to Ping</label>
+          <label htmlFor="guildActivityRoleId">Role to Ping (Optional)</label>
           <select
             id="guildActivityRoleId"
             name="guildActivityRoleId"
@@ -361,9 +348,7 @@ export default function EventsSettings({ guildId }) {
             onChange={handleChange}
             className={styles.select}
           >
-            <option value="">
-              No role (no notifications for guild activities)
-            </option>
+            <option value="">No role (notifications without ping)</option>
             {roles.map((role) => (
               <option
                 key={role.id}
@@ -377,33 +362,32 @@ export default function EventsSettings({ guildId }) {
               </option>
             ))}
           </select>
+          <small>
+            Select a role to ping, or leave empty to send notifications without
+            pinging
+          </small>
         </div>
 
-        {settings.guildActivityRoleId && (
-          <>
-            {renderRolePreview(settings.guildActivityRoleId, "Selected Role")}
+        {renderRolePreview(settings.guildActivityRoleId, "Selected Role")}
 
-            <div className={styles.formGroup}>
-              <label htmlFor="guildActivityMinutesBefore">
-                Minutes Before Event
-              </label>
-              <input
-                className={styles.select}
-                id="guildActivityMinutesBefore"
-                name="guildActivityMinutesBefore"
-                type="number"
-                min="1"
-                max="60"
-                value={settings.guildActivityMinutesBefore}
-                onChange={handleChange}
-              />
-              <small>
-                How many minutes before guild activities to send notification
-                (1-60)
-              </small>
-            </div>
-          </>
-        )}
+        <div className={styles.formGroup}>
+          <label htmlFor="guildActivityMinutesBefore">
+            Minutes Before Event
+          </label>
+          <input
+            className={styles.select}
+            id="guildActivityMinutesBefore"
+            name="guildActivityMinutesBefore"
+            type="number"
+            min="1"
+            max="60"
+            value={settings.guildActivityMinutesBefore}
+            onChange={handleChange}
+          />
+          <small>
+            How many minutes before guild activities to send notification (1-60)
+          </small>
+        </div>
       </div>
 
       {/* Leisure Activities Section */}
@@ -411,7 +395,7 @@ export default function EventsSettings({ guildId }) {
         <h3 className={styles.categoryTitle}>🎯 Leisure Activities</h3>
 
         <div className={styles.formGroup}>
-          <label htmlFor="leisureRoleId">Role to Ping</label>
+          <label htmlFor="leisureRoleId">Role to Ping (Optional)</label>
           <select
             id="leisureRoleId"
             name="leisureRoleId"
@@ -419,9 +403,7 @@ export default function EventsSettings({ guildId }) {
             onChange={handleChange}
             className={styles.select}
           >
-            <option value="">
-              No role (no notifications for leisure activities)
-            </option>
+            <option value="">No role (notifications without ping)</option>
             {roles.map((role) => (
               <option
                 key={role.id}
@@ -435,31 +417,31 @@ export default function EventsSettings({ guildId }) {
               </option>
             ))}
           </select>
+          <small>
+            Select a role to ping, or leave empty to send notifications without
+            pinging
+          </small>
         </div>
 
-        {settings.leisureRoleId && (
-          <>
-            {renderRolePreview(settings.leisureRoleId, "Selected Role")}
+        {renderRolePreview(settings.leisureRoleId, "Selected Role")}
 
-            <div className={styles.formGroup}>
-              <label htmlFor="leisureMinutesBefore">Minutes Before Event</label>
-              <input
-                id="leisureMinutesBefore"
-                className={styles.select}
-                name="leisureMinutesBefore"
-                type="number"
-                min="1"
-                max="60"
-                value={settings.leisureMinutesBefore}
-                onChange={handleChange}
-              />
-              <small>
-                How many minutes before leisure activities to send notification
-                (1-60)
-              </small>
-            </div>
-          </>
-        )}
+        <div className={styles.formGroup}>
+          <label htmlFor="leisureMinutesBefore">Minutes Before Event</label>
+          <input
+            id="leisureMinutesBefore"
+            className={styles.select}
+            name="leisureMinutesBefore"
+            type="number"
+            min="1"
+            max="60"
+            value={settings.leisureMinutesBefore}
+            onChange={handleChange}
+          />
+          <small>
+            How many minutes before leisure activities to send notification
+            (1-60)
+          </small>
+        </div>
       </div>
 
       <div className={styles.formGroup}>

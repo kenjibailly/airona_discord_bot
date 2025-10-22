@@ -104,11 +104,6 @@ export default function WorldBossSettings({ guildId }) {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (!settings.roleId) {
-      alert("Please select a role to ping");
-      return;
-    }
-
     if (!settings.channelId) {
       alert("Please select a notification channel");
       return;
@@ -182,16 +177,15 @@ export default function WorldBossSettings({ guildId }) {
       </div>
 
       <div className={styles.formGroup}>
-        <label htmlFor="roleId">Role to Ping *</label>
+        <label htmlFor="roleId">Role to Ping (Optional)</label>
         <select
           id="roleId"
           name="roleId"
           value={settings.roleId}
           onChange={handleChange}
           className={styles.select}
-          required
         >
-          <option value="">Select a role...</option>
+          <option value="">No role (notifications without ping)</option>
           {roles.map((role) => (
             <option
               key={role.id}
@@ -205,7 +199,10 @@ export default function WorldBossSettings({ guildId }) {
             </option>
           ))}
         </select>
-        <small>This role will be pinged when boss notifications are sent</small>
+        <small>
+          Select a role to ping, or leave empty to send notifications without
+          pinging
+        </small>
       </div>
 
       {settings.roleId && (
