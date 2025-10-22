@@ -565,12 +565,15 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
               <div className={styles.collapsible}>
                 <div
                   className={styles.header}
-                  onClick={() => toggleSection("images")}
+                  onClick={() => toggleSection(`images-${embedIndex}`)}
                 >
-                  <span>{expandedSections.images ? "▼" : "▶"} Images</span>
+                  <span>
+                    {expandedSections[`images-${embedIndex}`] ? "▼" : "▶"}{" "}
+                    Images
+                  </span>
                 </div>
 
-                {expandedSections.images && (
+                {expandedSections[`images-${embedIndex}`] && (
                   <div className={styles.content}>
                     <div className={styles.field}>
                       <label>Image URL</label>
@@ -578,7 +581,11 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
                         type="url"
                         value={embed.image?.url || ""}
                         onChange={(e) =>
-                          updateEmbed("image.url", e.target.value)
+                          updateEmbedAtIndex(
+                            embedIndex,
+                            "image.url",
+                            e.target.value
+                          )
                         }
                         placeholder="https://example.com/image.png"
                       />
@@ -591,7 +598,11 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
                         type="url"
                         value={embed.thumbnail?.url || ""}
                         onChange={(e) =>
-                          updateEmbed("thumbnail.url", e.target.value)
+                          updateEmbedAtIndex(
+                            embedIndex,
+                            "thumbnail.url",
+                            e.target.value
+                          )
                         }
                         placeholder="https://example.com/thumbnail.png"
                       />
