@@ -188,7 +188,7 @@ async function checkEvents(client) {
       const currentMinute = now.getUTCMinutes();
 
       // Check Boss Events
-      if (module.settings.bossRoleId && EVENTS.boss) {
+      if (EVENTS.boss && EVENTS.boss.length > 0) {
         const minutesBefore = module.settings.bossMinutesBefore || 5;
 
         for (const event of EVENTS.boss) {
@@ -219,7 +219,7 @@ async function checkEvents(client) {
       }
 
       // Check Guild Activities
-      if (module.settings.guildActivityRoleId && EVENTS.guildActivity) {
+      if (EVENTS.guildActivity && EVENTS.guildActivity.length > 0) {
         const minutesBefore = module.settings.guildActivityMinutesBefore || 5;
 
         for (const event of EVENTS.guildActivity) {
@@ -250,7 +250,7 @@ async function checkEvents(client) {
       }
 
       // Check Leisure Activities
-      if (module.settings.leisureRoleId && EVENTS.leisure) {
+      if (EVENTS.leisure && EVENTS.leisure.length > 0) {
         const minutesBefore = module.settings.leisureMinutesBefore || 5;
 
         for (const event of EVENTS.leisure) {
