@@ -3,7 +3,7 @@
     {
       "name": "World Boss Crusade",
       "startTime": { "hour": 16, "minute": 0 },
-      "endTime": { "hour": 2, "minute": 0 },
+      "endTime": { "hour": 22, "minute": 0 },
       "days": [0, 1, 2, 3, 4, 5, 6],
       "duration": 360
     }
