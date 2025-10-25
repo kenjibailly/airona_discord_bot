@@ -6,6 +6,7 @@ const memberSchema = new mongoose.Schema({
   class: { type: String, required: true },
   spec: { type: String, required: true },
   range: { type: String, required: true },
+  queueSpot: { type: Number, default: null }, // 👈 only used for bench members
 });
 
 const raidPartySchema = new mongoose.Schema(
@@ -21,6 +22,11 @@ const raidPartySchema = new mongoose.Schema(
     date: { type: String },
     time: { type: String },
     utc: { type: String },
+    bench: {
+      tanks: { type: [memberSchema], default: [] },
+      healers: { type: [memberSchema], default: [] },
+      dps: { type: [memberSchema], default: [] },
+    },
   },
   {
     timestamps: true,

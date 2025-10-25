@@ -427,40 +427,30 @@ async function addToParty(interaction, role, className, spec, partyMessageId) {
   const party = await RaidParties.findOne({ messageId: partyMessageId });
   const userId = interaction.user.id;
 
-  // Check if user is already in party
-  const allMembers = [...party.tanks, ...party.healers, ...party.dps];
+  // Check if user is already in party or bench
+  const allMembers = [
+    ...party.tanks,
+    ...party.healers,
+    ...party.dps,
+    ...party.bench.tanks,
+    ...party.bench.healers,
+    ...party.bench.dps,
+  ];
   if (allMembers.some((m) => m.userId === userId)) {
-    const partyEmbedError = new EmbedBuilder()
-      .setTitle("Party Finder")
-      .setDescription(
-        "❌ You're already in this party! Leave first to change your role."
-      )
-      .setColor("Red");
-    await safeReply(interaction, {
-      embeds: [partyEmbedError],
+    return await safeReply(interaction, {
+      embeds: [
+        new EmbedBuilder()
+          .setTitle("Party Finder")
+          .setDescription("❌ You're already in this party or on the bench!")
+          .setColor("Red"),
+      ],
       ephemeral: true,
     });
-    return;
   }
 
-  // Check if role is full
   const maxSlots = { tanks: 4, healers: 4, dps: 12 };
   const roleKey = role.toLowerCase() === "dps" ? "dps" : role + "s";
 
-  const roleEmbedError = new EmbedBuilder()
-    .setTitle("Party Finder")
-    .setDescription(`❌ The ${role} role is full!`)
-    .setColor("Red");
-
-  if (party[roleKey].length >= maxSlots[roleKey]) {
-    await safeReply(interaction, {
-      embeds: [roleEmbedError],
-      ephemeral: true,
-    });
-    return;
-  }
-
-  // Get range info
   const rangeMap = {
     Iaido: "Melee",
     Moonstrike: "Melee",
@@ -488,12 +478,32 @@ async function addToParty(interaction, role, className, spec, partyMessageId) {
     range: rangeMap[spec] || "Unknown",
   };
 
-  // Add to appropriate role array
-  party[roleKey].push(member);
+  // If party is full, add to bench instead
+  if (party[roleKey].length >= maxSlots[roleKey]) {
+    const queueSpot = party.bench[roleKey].length + 1;
+    const benchMember = { ...member, queueSpot };
+    party.bench[roleKey].push(benchMember);
+    await party.save();
 
+    await updatePartyEmbed(interaction, party);
+
+    const embed = new EmbedBuilder()
+      .setTitle("Party Finder")
+      .setDescription(
+        `🪑 The ${role} role is full, so you've been added to the bench!\nYou are **#${queueSpot}** in the queue.`
+      )
+      .setColor("Yellow");
+
+    return await safeReply(interaction, {
+      embeds: [embed],
+      ephemeral: true,
+    });
+  }
+
+  // Otherwise, add to main party
+  party[roleKey].push(member);
   await party.save();
 
-  // Update the main embed
   await updatePartyEmbed(interaction, party);
 
   const embed = new EmbedBuilder()
@@ -503,7 +513,7 @@ async function addToParty(interaction, role, className, spec, partyMessageId) {
     )
     .setColor("Green");
 
-  await safeReply(interaction, {
+  return await safeReply(interaction, {
     embeds: [embed],
     ephemeral: true,
   });
@@ -512,47 +522,49 @@ async function addToParty(interaction, role, className, spec, partyMessageId) {
 async function leaveParty(interaction, partyMessageId) {
   const userId = interaction.user.id;
 
-  // Try to remove the user from any of the role arrays atomically.
-  // The query ensures we only attempt the update if the user exists in at least one array.
-  const updatedParty = await RaidParties.findOneAndUpdate(
-    {
-      messageId: partyMessageId,
-      $or: [
-        { "tanks.userId": userId },
-        { "healers.userId": userId },
-        { "dps.userId": userId },
+  const party = await RaidParties.findOne({ messageId: partyMessageId });
+  if (!party) {
+    return safeReply(interaction, {
+      embeds: [
+        new EmbedBuilder()
+          .setColor("#ff0000")
+          .setTitle("❌ Party Not Found")
+          .setDescription("This party no longer exists or has already ended."),
       ],
-    },
-    {
-      $pull: {
-        tanks: { userId },
-        healers: { userId },
-        dps: { userId },
-      },
-    },
-    { new: true } // return the updated document
-  ).exec();
+      ephemeral: true,
+    });
+  }
 
-  // If updatedParty is null, either party doesn't exist, or user was not in any list.
-  if (!updatedParty) {
-    // Check if the party exists at all (helps distinguish between "party gone" and "not in party")
-    const partyExists = await RaidParties.exists({ messageId: partyMessageId });
+  const roles = ["tanks", "healers", "dps"];
+  let removedFromRole = null;
+  let removedFromBench = false;
 
-    if (!partyExists) {
-      return safeReply(interaction, {
-        embeds: [
-          new EmbedBuilder()
-            .setColor("#ff0000")
-            .setTitle("❌ Party Not Found")
-            .setDescription(
-              "This party no longer exists or has already ended."
-            ),
-        ],
-        ephemeral: true,
-      });
+  // Try to remove the user from main roster first
+  for (const role of roles) {
+    const index = party[role].findIndex((m) => m.userId === userId);
+    if (index !== -1) {
+      party[role].splice(index, 1);
+      removedFromRole = role;
+      break;
     }
+  }
 
-    // Party exists but the user wasn't in it
+  // If not found in main roster, check the bench
+  if (!removedFromRole) {
+    for (const role of roles) {
+      const benchIndex = party.bench[role].findIndex(
+        (m) => m.userId === userId
+      );
+      if (benchIndex !== -1) {
+        party.bench[role].splice(benchIndex, 1);
+        removedFromBench = true;
+        break;
+      }
+    }
+  }
+
+  // If not found anywhere
+  if (!removedFromRole && !removedFromBench) {
     return safeReply(interaction, {
       embeds: [
         new EmbedBuilder()
@@ -564,17 +576,39 @@ async function leaveParty(interaction, partyMessageId) {
     });
   }
 
-  // At this point the DB has removed the member and returned the updated party.
-  // Update the public embed to reflect the new roster.
-  await updatePartyEmbed(interaction, updatedParty);
+  // If someone left from the main roster, pull in first from bench (if available)
+  if (removedFromRole && party.bench[removedFromRole].length > 0) {
+    // Get first in queue
+    const nextMember = party.bench[removedFromRole].shift();
 
-  // Confirm to the user
+    // Add them to main roster
+    party[removedFromRole].push(nextMember);
+
+    // Let them know they got promoted
+    try {
+      const user = await interaction.client.users.fetch(nextMember.userId);
+      await user.send(
+        `🎉 You’ve been promoted from the bench to the main party as a **${nextMember.class} - ${nextMember.spec} (${nextMember.range})** for **${party.raidName}**!`
+      );
+    } catch (err) {
+      console.log("Could not DM promoted user:", err.message);
+    }
+  }
+
+  await party.save();
+  await updatePartyEmbed(interaction, party);
+
+  // Confirm to the leaver
   return safeReply(interaction, {
     embeds: [
       new EmbedBuilder()
         .setColor("#57f287")
         .setTitle("✅ You Left The Party")
-        .setDescription("You have been removed from the party successfully."),
+        .setDescription(
+          removedFromBench
+            ? "You have been removed from the bench."
+            : "You have been removed from the party successfully."
+        ),
     ],
     ephemeral: true,
   });
@@ -585,9 +619,18 @@ async function updatePartyEmbed(interaction, party) {
   const message = await channel.messages.fetch(party.messageId);
 
   const formatMembers = (members) => {
-    if (members.length === 0) return "No one yet";
+    if (!members || members.length === 0) return "No one yet";
     return members
       .map((m) => `<@${m.userId}> - ${m.class} (${m.spec}) - ${m.range}`)
+      .join("\n");
+  };
+
+  const formatBench = (members) => {
+    return members
+      .map(
+        (m) =>
+          `#${m.queueSpot} - <@${m.userId}> - ${m.class} (${m.spec}) - ${m.range}`
+      )
       .join("\n");
   };
 
@@ -605,12 +648,18 @@ async function updatePartyEmbed(interaction, party) {
   }
 
   let whenField = "No date/time specified";
+  if (unix) whenField = `<t:${unix}:F> (<t:${unix}:R>)`;
 
-  if (unix) {
-    whenField = `<t:${unix}:F> (<t:${unix}:R>)`;
-  }
+  // Build bench lines dynamically
+  const benchSections = [];
+  if (party.bench.tanks.length > 0)
+    benchSections.push(`**Tanks:**\n${formatBench(party.bench.tanks)}`);
+  if (party.bench.healers.length > 0)
+    benchSections.push(`**Healers:**\n${formatBench(party.bench.healers)}`);
+  if (party.bench.dps.length > 0)
+    benchSections.push(`**DPS:**\n${formatBench(party.bench.dps)}`);
 
-  const embed = EmbedBuilder.from(message.embeds[0]).setFields(
+  const embedFields = [
     { name: "🗓️ Date & Time", value: whenField, inline: false },
     {
       name: `🛡️ Tanks (${party.tanks.length}/4)`,
@@ -626,8 +675,19 @@ async function updatePartyEmbed(interaction, party) {
       name: `⚔️ DPS (${party.dps.length}/12)`,
       value: formatMembers(party.dps),
       inline: false,
-    }
-  );
+    },
+  ];
+
+  // Only add bench section if there are bench members
+  if (benchSections.length > 0) {
+    embedFields.push({
+      name: "🪑 Bench",
+      value: benchSections.join("\n\n"),
+      inline: false,
+    });
+  }
+
+  const embed = EmbedBuilder.from(message.embeds[0]).setFields(embedFields);
 
   await message.edit({ embeds: [embed] });
 }
