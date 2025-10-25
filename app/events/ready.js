@@ -4,15 +4,23 @@ const { startEventsScheduler } = require("../schedulers/eventsScheduler");
 const {
   startPartyCleanupScheduler,
 } = require("../schedulers/partyCleanupScheduler");
+const { setupAppEmojis } = require("../utilities/setupEmojis");
+const { cacheAppEmojis } = require("../utilities/cacheAppEmojis");
 
 module.exports = {
   name: Events.ClientReady,
   once: true,
-  execute(client) {
+  async execute(client) {
     logger.success(`Logged in as ${client.user.tag}!`);
-    // Start world boss scheduler
+
+    // Start schedulers
     startWorldBossScheduler(client);
     startEventsScheduler(client);
     startPartyCleanupScheduler(client);
+
+    // Setup app emojis
+    await setupAppEmojis(client);
+
+    await cacheAppEmojis(client);
   },
 };

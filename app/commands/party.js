@@ -7,9 +7,9 @@ const {
 } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
-const Logger = require("../utilities/logger");
 const RaidParties = require("../models/RaidParties");
-const { Console } = require("console");
+const { appEmojis } = require("../utilities/cacheAppEmojis");
+const normalizeName = require("../utilities/normalizeName");
 
 // Load raids safely
 let raids = [];
@@ -126,7 +126,7 @@ module.exports = {
     }
   },
 
-  async execute(interaction) {
+  async execute(interaction, client) {
     const subcommand = interaction.options.getSubcommand();
 
     if (subcommand === "dungeon") {
@@ -374,17 +374,15 @@ async function showClassSelection(interaction, role, partyMessageId) {
     dps: ["Stormblade", "Wind Knight", "Frost Mage", "Marksman"],
   };
 
-  const buttons = classes[role].map((className) =>
-    new ButtonBuilder()
+  const buttons = classes[role].map((className) => {
+    const emoji = appEmojis.get(normalizeName(className)) || undefined;
+
+    return new ButtonBuilder()
       .setCustomId(`class_${role}_${className.replace(" ", "")}`)
       .setLabel(className)
       .setStyle(ButtonStyle.Secondary)
-  );
-
-  const backButton = new ButtonBuilder()
-    .setCustomId("back_role")
-    .setLabel("Back")
-    .setStyle(ButtonStyle.Secondary);
+      .setEmoji(emoji); // assign emoji here
+  });
 
   // Split into rows of 4 buttons max
   const rows = [];
@@ -417,12 +415,15 @@ async function showSpecSelection(interaction, role, className, partyMessageId) {
   };
 
   const classKey = className.replace(" ", "");
-  const specButtons = specs[classKey].map((spec) =>
-    new ButtonBuilder()
+  const specButtons = specs[classKey].map((spec) => {
+    const emoji = appEmojis.get(normalizeName(spec)) || undefined;
+
+    return new ButtonBuilder()
       .setCustomId(`spec_${role}_${classKey}_${spec}`)
       .setLabel(spec)
       .setStyle(ButtonStyle.Primary)
-  );
+      .setEmoji(emoji); // assign emoji here
+  });
 
   const backButton = new ButtonBuilder()
     .setCustomId(`back_class_${role}`)
@@ -640,17 +641,25 @@ async function updatePartyEmbed(interaction, party) {
 
   const formatMembers = (members) => {
     if (!members || members.length === 0) return "No one yet";
+
     return members
-      .map((m) => `<@${m.userId}> - ${m.class} (${m.spec}) - ${m.range}`)
+      .map((m) => {
+        // Try to get class/spec emojis
+        const classEmoji = appEmojis.get(normalizeName(m.class)) || "";
+        const specEmoji = appEmojis.get(normalizeName(m.spec)) || "";
+
+        return ` <@${m.userId}> - ${classEmoji} ${m.class} (${specEmoji} ${m.spec}) - ${m.range}`;
+      })
       .join("\n");
   };
 
   const formatBench = (members) => {
     return members
-      .map(
-        (m) =>
-          `#${m.queueSpot} - <@${m.userId}> - ${m.class} (${m.spec}) - ${m.range}`
-      )
+      .map((m) => {
+        const classEmoji = appEmojis.get(m.class.toLowerCase()) || "";
+        const specEmoji = appEmojis.get(m.spec.toLowerCase()) || "";
+        return `#${m.queueSpot} - <@${m.userId}> - ${classEmoji} ${m.class} (${specEmoji} ${m.spec}) - ${m.range}`;
+      })
       .join("\n");
   };
 
