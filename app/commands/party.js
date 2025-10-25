@@ -509,7 +509,7 @@ async function addToParty(interaction, role, className, spec, partyMessageId) {
   const roleKey = role.toLowerCase() === "dps" ? "dps" : role + "s";
 
   const rangeMap = {
-    Iaido: "Melee",
+    "Iaido Slash": "Melee",
     Moonstrike: "Melee",
     Skyward: "Melee",
     Vanguard: "Melee",
@@ -518,8 +518,8 @@ async function addToParty(interaction, role, className, spec, partyMessageId) {
     Wildpack: "Ranged",
     Falconry: "Ranged",
     Earthfort: "Melee",
-    Protection: "Melee",
-    "Light Shield": "Melee",
+    Block: "Melee",
+    Shield: "Melee",
     Recovery: "Melee",
     Lifebind: "Melee",
     Smite: "Ranged",
