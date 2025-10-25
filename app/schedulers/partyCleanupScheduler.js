@@ -8,15 +8,19 @@ async function startPartyCleanupScheduler(client) {
     try {
       const now = new Date();
       const parties = await RaidParties.find();
+      const guildModules = await GuildModule.find({ moduleId: "party_raid" });
 
       for (const party of parties) {
-        // Find the guild module settings for this guild
-        const guildModule = await GuildModule.findOne({
-          guildId: party.guildId,
-          moduleId: "party_raid",
-        });
+        const guildModule = guildModules.find(
+          (m) => m.guildId === party.guildId
+        );
 
-        const deleteAfterHours = guildModule?.settings?.deleteAfter ?? 24; // default to 24h if not set
+        const deleteAfterHours =
+          guildModule &&
+          guildModule.enabled &&
+          guildModule.settings?.deleteAfter
+            ? guildModule.settings.deleteAfter
+            : 24;
 
         let partyDateTime;
 
@@ -60,7 +64,7 @@ async function startPartyCleanupScheduler(client) {
             const channel = await client.channels.fetch(party.channelId);
             const message = await channel.messages.fetch(party.messageId);
             if (message) await message.delete();
-          } catch (err) {
+          } catch {
             // Ignore missing channel/message errors
           }
         }
