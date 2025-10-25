@@ -71,6 +71,12 @@ router.get(
             "Get notifications for Boss events, Guild activities, and Leisure activities",
           category: "blueprotocol",
         },
+        {
+          id: "party_raid",
+          title: "Raid Party Finder",
+          description: "Settings for the Raid Party Finder.",
+          category: "blueprotocol",
+        },
       ];
 
       // Get module states from database

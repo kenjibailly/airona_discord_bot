@@ -1,7 +1,8 @@
 const cron = require("node-cron");
 const RaidParties = require("../models/RaidParties");
+const GuildModule = require("../models/GuildModule");
 
-function startPartyCleanupScheduler(client) {
+async function startPartyCleanupScheduler(client) {
   // Run every hour
   cron.schedule("0 * * * *", async () => {
     try {
@@ -9,6 +10,14 @@ function startPartyCleanupScheduler(client) {
       const parties = await RaidParties.find();
 
       for (const party of parties) {
+        // Find the guild module settings for this guild
+        const guildModule = await GuildModule.findOne({
+          guildId: party.guildId,
+          moduleId: "party_raid",
+        });
+
+        const deleteAfterHours = guildModule?.settings?.deleteAfter ?? 24; // default to 24h if not set
+
         let partyDateTime;
 
         if (party.date && party.time) {
@@ -16,7 +25,6 @@ function startPartyCleanupScheduler(client) {
           const [hour, minute] = party.time.split(":").map(Number);
           const year = now.getUTCFullYear();
 
-          // Parse UTC offset, e.g., "UTC−12:00" or "UTC+03:30"
           let offsetHours = 0;
           let offsetMinutes = 0;
 
@@ -29,12 +37,9 @@ function startPartyCleanupScheduler(client) {
             }
           }
 
-          // Build UTC date, then adjust by offset
           partyDateTime = new Date(
             Date.UTC(year, month - 1, day, hour, minute, 0)
           );
-
-          // Convert local time (with offset) to UTC
           partyDateTime.setUTCHours(partyDateTime.getUTCHours() - offsetHours);
           partyDateTime.setUTCMinutes(
             partyDateTime.getUTCMinutes() - offsetMinutes
@@ -45,9 +50,8 @@ function startPartyCleanupScheduler(client) {
 
         const hoursDiff = (now - partyDateTime) / (1000 * 60 * 60);
 
-        if (hoursDiff >= 24) {
+        if (hoursDiff >= deleteAfterHours) {
           await RaidParties.deleteOne({ _id: party._id });
-
           logger.success(
             `[Party Cleanup] Deleted party ${party._id} (${party.raidName})`
           );
@@ -66,9 +70,7 @@ function startPartyCleanupScheduler(client) {
     }
   });
 
-  logger.success(
-    "🧹 Party cleanup scheduler started (runs every 10 seconds for testing)"
-  );
+  logger.success("🧹 Party cleanup scheduler started (runs every hour)");
 }
 
 module.exports = { startPartyCleanupScheduler };

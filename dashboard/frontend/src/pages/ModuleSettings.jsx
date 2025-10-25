@@ -7,6 +7,7 @@ import WorldBossSettings from "../components/modules/WorldBossSettings";
 import EventsSettings from "../components/modules/EventsSettings";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
+import RaidSettings from "../components/modules/RaidSettings";
 
 export default function ModuleSettings() {
   const { guildId, moduleId } = useParams();
@@ -30,12 +31,8 @@ export default function ModuleSettings() {
       case "events":
         return <EventsSettings guildId={guildId} />;
 
-      case "leveling":
-        return (
-          <div>
-            <p>Leveling settings coming soon...</p>
-          </div>
-        );
+      case "party_raid":
+        return <RaidSettings guildId={guildId} />;
 
       default:
         return (
@@ -53,7 +50,7 @@ export default function ModuleSettings() {
       reactionroles: "Reaction Roles",
       worldboss: "World Boss Notifier",
       events: "Events Notifier",
-      leveling: "Leveling System",
+      party_raid: "Raid Party Finder Settings",
     };
     return titles[moduleId] || moduleId;
   };

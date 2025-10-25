@@ -10,6 +10,7 @@ const path = require("path");
 const RaidParties = require("../models/RaidParties");
 const { appEmojis } = require("../utilities/cacheAppEmojis");
 const normalizeName = require("../utilities/normalizeName");
+const GuildModule = require("../models/GuildModule");
 
 // Load raids safely
 let raids = [];
@@ -162,6 +163,34 @@ module.exports = {
         whenField = `<t:${unix}:F> (<t:${unix}:R>)`;
       }
 
+      let raidSettings;
+      try {
+        raidSettings = await GuildModule.findOne({
+          guildId: interaction.guildId,
+          moduleId: "party_raid",
+        });
+        if (!raidSettings) {
+          const embed = new EmbedBuilder()
+            .setTitle("Settings Error")
+            .setDescription(
+              "Could not find Raid Party Finder settings, please contact the administrator."
+            )
+            .setColor("Red");
+
+          return await safeReply({ embeds: [embed], ephemeral: true });
+        }
+      } catch (error) {
+        logger.error(error);
+        const embed = new EmbedBuilder()
+          .setTitle("Settings Error")
+          .setDescription(
+            "Could not fetch Raid Party Finder settings, please contact the administrator."
+          )
+          .setColor("Red");
+
+        return await safeReply({ embeds: [embed], ephemeral: true });
+      }
+
       const embed = new EmbedBuilder()
         .setColor(0x5865f2)
         .setTitle(`⚔️ Raid Party Finder - ${raidName}`)
@@ -199,7 +228,14 @@ module.exports = {
           .setStyle(ButtonStyle.Secondary)
       );
 
+      let content;
+      if (raidSettings.enabled) {
+        content = `<@&${raidSettings.settings.roleId}>`;
+      } else {
+        content = "";
+      }
       const message = await sendOrFetchReply(interaction, {
+        content: content,
         embeds: [embed],
         components: [row],
         ephemeral: false,
@@ -404,11 +440,11 @@ async function showClassSelection(interaction, role, partyMessageId) {
 
 async function showSpecSelection(interaction, role, className, partyMessageId) {
   const specs = {
-    HeavyGuardian: ["Earthfort", "Protection"],
-    ShieldKnight: ["Light Shield", "Recovery"],
+    HeavyGuardian: ["Earthfort", "Block"],
+    ShieldKnight: ["Shield", "Recovery"],
     VerdantOracle: ["Lifebind", "Smite"],
     BeatPerformer: ["Concerto", "Dissonance"],
-    Stormblade: ["Iaido", "Moonstrike"],
+    Stormblade: ["Iaido Slash", "Moonstrike"],
     WindKnight: ["Skyward", "Vanguard"],
     FrostMage: ["Icicle", "Frostbeam"],
     Marksman: ["Wildpack", "Falconry"],
