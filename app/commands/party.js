@@ -199,10 +199,10 @@ module.exports = {
           .setStyle(ButtonStyle.Secondary)
       );
 
-      const message = await safeReply(interaction, {
+      const message = await sendOrFetchReply(interaction, {
         embeds: [embed],
         components: [row],
-        fetchReply: true,
+        ephemeral: false,
       });
 
       // Store party data
@@ -313,6 +313,26 @@ async function safeReply(interaction, messageOptions) {
     }
   } catch (error) {
     console.error("safeReply error:", error);
+  }
+}
+
+// Helper to ensure we always get the message
+async function sendOrFetchReply(interaction, options) {
+  try {
+    if (!interaction.deferred && !interaction.replied) {
+      // Defer first to avoid reply errors
+      await interaction.deferReply({ ephemeral: options.ephemeral ?? true });
+    }
+
+    // Edit the deferred reply
+    await interaction.editReply(options);
+
+    // Fetch the resulting message
+    const message = await interaction.fetchReply();
+    return message;
+  } catch (err) {
+    console.error("sendOrFetchReply error:", err);
+    throw err;
   }
 }
 
@@ -776,11 +796,16 @@ function computeEventUnixTimestamp(date, time, utc) {
   const [day, month] = date.split("/").map(Number);
   const [hours, minutes] = time.split(":").map(Number);
   const now = new Date();
-  const year = now.getUTCFullYear(); // keep in UTC year; you may prefer local year logic
+  let year = now.getUTCFullYear();
 
-  // Build a millisecond timestamp for the *wall-clock* time as if interpreted in UTC.
-  // Later we'll shift it by the zone offset to get the true UTC instant.
-  const wallClockUtcMs = Date.UTC(year, month - 1, day, hours, minutes, 0);
+  // Initial wall-clock UTC
+  let wallClockUtcMs = Date.UTC(year, month - 1, day, hours, minutes, 0);
+
+  // If this is in the past, assume next year
+  if (wallClockUtcMs < now.getTime()) {
+    year += 1;
+    wallClockUtcMs = Date.UTC(year, month - 1, day, hours, minutes, 0);
+  }
 
   // Helper: parse "UTC±HH[:MM]" -> offsetMinutes
   function parseUTCOffsetString(str) {
@@ -872,7 +897,7 @@ function computeEventUnixTimestamp(date, time, utc) {
   const nowMs = Date.now();
   if (actualEventUtcMs < nowMs) {
     // You could return a special code or error here
-    // return { unix: Math.floor(actualEventUtcMs/1000), error: "past" };
+    return { unix: Math.floor(actualEventUtcMs / 1000), error: "past" };
   }
 
   return { unix: Math.floor(actualEventUtcMs / 1000), error: null };
