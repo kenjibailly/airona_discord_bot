@@ -1,4 +1,4 @@
-const { Events } = require("discord.js");
+const { Events, EmbedBuilder } = require("discord.js");
 const GuildModule = require("../models/GuildModule");
 
 module.exports = {
@@ -59,10 +59,15 @@ module.exports = {
           // Replace placeholders
           message = message.replace(/{user}/g, `<@${member.id}>`);
           message = message.replace(/{username}/g, member.user.username);
-          message = message.replace(/{server}/g, member.guild.name);
+          message = message.replace(/{server}/g, `**${member.guild.name}**`);
+
+          const embed = new EmbedBuilder()
+            .setTitle("Welcome!")
+            .setDescription(message)
+            .setColor("Green");
 
           try {
-            await channel.send(message);
+            await channel.send({ embeds: [embed] });
             logger.success(
               `Sent welcome message for ${member.user.tag} in ${member.guild.name}`
             );
