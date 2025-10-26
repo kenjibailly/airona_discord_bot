@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import EmojiPicker, { Theme } from "emoji-picker-react";
 import Navbar from "../components/Navbar";
-import EmojiPicker from "../components/EmojiPicker";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
 import editorStyles from "../styles/ReactionRoleEditor.module.css";
@@ -12,6 +12,7 @@ export default function ReactionRoleEditor() {
   const navigate = useNavigate();
   const { user, guilds, loading: authLoading } = useAuth();
   const isEdit = !!reactionRoleId;
+  const pickerRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -42,12 +43,26 @@ export default function ReactionRoleEditor() {
     }
   }, [guildId, reactionRoleId, authLoading]);
 
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(null);
+      }
+    };
+
+    if (showEmojiPicker !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showEmojiPicker]);
+
   const fetchRoles = async () => {
     try {
       const response = await axios.get(`/guilds/${guildId}/roles`, {
         withCredentials: true,
       });
-      // Filter out managed roles (bot roles, boosts, etc.)
       const assignableRoles = (response.data.roles || []).filter(
         (role) => !role.managed
       );
@@ -77,7 +92,6 @@ export default function ReactionRoleEditor() {
         }
       );
 
-      // Check if response is valid JSON
       if (
         !response.data ||
         typeof response.data !== "object" ||
@@ -89,7 +103,6 @@ export default function ReactionRoleEditor() {
         return;
       }
 
-      // Ensure reactions is always an array
       const data = response.data;
       if (!data.reactions || !Array.isArray(data.reactions)) {
         data.reactions = [
@@ -106,6 +119,7 @@ export default function ReactionRoleEditor() {
       setLoading(false);
     }
   };
+
   const handleChange = (e) => {
     const { name, value, type: inputType, checked } = e.target;
     setFormData((prev) => ({
@@ -149,17 +163,24 @@ export default function ReactionRoleEditor() {
     }));
   };
 
-  const handleEmojiSelect = (index, emoji) => {
-    updateReaction(index, "emoji", emoji.id || emoji.native);
-    updateReaction(index, "emojiName", emoji.name);
-    updateReaction(index, "isCustom", !!emoji.id);
+  const handleEmojiSelect = (index, emojiData) => {
+    // emoji-picker-react returns { emoji, unified, names, etc }
+    updateReaction(index, "emoji", emojiData.emoji);
+    updateReaction(index, "emojiName", emojiData.names?.[0] || emojiData.emoji);
+    updateReaction(index, "isCustom", false);
+    setShowEmojiPicker(null);
+  };
+
+  const handleCustomEmojiSelect = (index, customEmoji) => {
+    updateReaction(index, "emoji", customEmoji.id);
+    updateReaction(index, "emojiName", customEmoji.name);
+    updateReaction(index, "isCustom", true);
     setShowEmojiPicker(null);
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.name.trim()) {
       alert("Please enter a name");
       return;
@@ -320,11 +341,47 @@ export default function ReactionRoleEditor() {
                     )}
 
                     {showEmojiPicker === index && (
-                      <EmojiPicker
-                        customEmojis={emojis}
-                        onSelect={(emoji) => handleEmojiSelect(index, emoji)}
-                        onClose={() => setShowEmojiPicker(null)}
-                      />
+                      <div
+                        ref={pickerRef}
+                        className={editorStyles.emojiPickerWrapper}
+                      >
+                        <EmojiPicker
+                          onEmojiClick={(emojiData) =>
+                            handleEmojiSelect(index, emojiData)
+                          }
+                          theme={Theme.DARK}
+                          width="100%"
+                          height={400}
+                          previewConfig={{ showPreview: false }}
+                        />
+
+                        {/* Custom Discord Emojis Section */}
+                        {emojis.length > 0 && (
+                          <div className={editorStyles.customEmojis}>
+                            <div className={editorStyles.customEmojisHeader}>
+                              Custom Discord Emojis
+                            </div>
+                            <div className={editorStyles.customEmojiGrid}>
+                              {emojis.map((emoji) => (
+                                <button
+                                  key={emoji.id}
+                                  type="button"
+                                  onClick={() =>
+                                    handleCustomEmojiSelect(index, emoji)
+                                  }
+                                  className={editorStyles.customEmojiButton}
+                                  title={emoji.name}
+                                >
+                                  <img
+                                    src={`https://cdn.discordapp.com/emojis/${emoji.id}.png`}
+                                    alt={emoji.name}
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

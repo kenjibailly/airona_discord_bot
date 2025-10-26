@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import EmojiPicker from "../EmojiPicker";
+import EmojiPicker, { Theme } from "emoji-picker-react";
 import styles from "../../styles/EmbedEditor.module.css";
 
 export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
@@ -15,10 +15,26 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
   });
   const [showEmojiPicker, setShowEmojiPicker] = useState(null);
   const [customEmojis, setCustomEmojis] = useState([]);
+  const pickerRef = useRef(null);
 
   useEffect(() => {
     fetchEmojis();
   }, [guildId]);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(null);
+      }
+    };
+
+    if (showEmojiPicker !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showEmojiPicker]);
 
   const fetchEmojis = async () => {
     try {
@@ -187,6 +203,23 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
       }
       return { ...prev, components: newComponents };
     });
+  };
+
+  const handleEmojiSelect = (rowIndex, buttonIndex, emojiData) => {
+    // Standard emoji from emoji-picker-react
+    updateButton(rowIndex, buttonIndex, "emoji", {
+      name: emojiData.emoji,
+    });
+    setShowEmojiPicker(null);
+  };
+
+  const handleCustomEmojiSelect = (rowIndex, buttonIndex, customEmoji) => {
+    // Custom Discord emoji
+    updateButton(rowIndex, buttonIndex, "emoji", {
+      id: customEmoji.id,
+      name: customEmoji.name,
+    });
+    setShowEmojiPicker(null);
   };
 
   return (
@@ -764,42 +797,70 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
 
               <div className={styles.field}>
                 <label>Emoji (optional)</label>
-                <button
-                  className={styles.emojiButton}
-                  onClick={() =>
-                    setShowEmojiPicker(
-                      showEmojiPicker === `${rowIndex}-${buttonIndex}`
-                        ? null
-                        : `${rowIndex}-${buttonIndex}`
-                    )
-                  }
-                >
-                  {button.emoji
-                    ? button.emoji.id
-                      ? `<:${button.emoji.name}:${button.emoji.id}>`
-                      : button.emoji.name
-                    : "Select Emoji"}
-                </button>
+                <div style={{ position: "relative" }}>
+                  <button
+                    type="button"
+                    className={styles.emojiButton}
+                    onClick={() =>
+                      setShowEmojiPicker(
+                        showEmojiPicker === `${rowIndex}-${buttonIndex}`
+                          ? null
+                          : `${rowIndex}-${buttonIndex}`
+                      )
+                    }
+                  >
+                    {button.emoji
+                      ? button.emoji.id
+                        ? `<:${button.emoji.name}:${button.emoji.id}>`
+                        : button.emoji.name
+                      : "Select Emoji"}
+                  </button>
 
-                {showEmojiPicker === `${rowIndex}-${buttonIndex}` && (
-                  <EmojiPicker
-                    customEmojis={customEmojis}
-                    onSelect={(emoji) => {
-                      if (emoji.id) {
-                        updateButton(rowIndex, buttonIndex, "emoji", {
-                          id: emoji.id,
-                          name: emoji.name,
-                        });
-                      } else {
-                        updateButton(rowIndex, buttonIndex, "emoji", {
-                          name: emoji.native,
-                        });
-                      }
-                      setShowEmojiPicker(null);
-                    }}
-                    onClose={() => setShowEmojiPicker(null)}
-                  />
-                )}
+                  {showEmojiPicker === `${rowIndex}-${buttonIndex}` && (
+                    <div ref={pickerRef} className={styles.emojiPickerWrapper}>
+                      <EmojiPicker
+                        onEmojiClick={(emojiData) =>
+                          handleEmojiSelect(rowIndex, buttonIndex, emojiData)
+                        }
+                        theme={Theme.DARK}
+                        width="100%"
+                        height={400}
+                        previewConfig={{ showPreview: false }}
+                      />
+
+                      {/* Custom Discord Emojis Section */}
+                      {customEmojis.length > 0 && (
+                        <div className={styles.customEmojis}>
+                          <div className={styles.customEmojisHeader}>
+                            Custom Discord Emojis
+                          </div>
+                          <div className={styles.customEmojiGrid}>
+                            {customEmojis.map((emoji) => (
+                              <button
+                                key={emoji.id}
+                                type="button"
+                                onClick={() =>
+                                  handleCustomEmojiSelect(
+                                    rowIndex,
+                                    buttonIndex,
+                                    emoji
+                                  )
+                                }
+                                className={styles.customEmojiButton}
+                                title={emoji.name}
+                              >
+                                <img
+                                  src={`https://cdn.discordapp.com/emojis/${emoji.id}.png`}
+                                  alt={emoji.name}
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
