@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import EmojiPicker, { Theme } from "emoji-picker-react";
+import EmojiPicker, { Theme, EmojiStyle } from "emoji-picker-react";
 import styles from "../../styles/EmbedEditor.module.css";
 
 export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
@@ -826,6 +826,7 @@ export default function EmbedEditor({ embedData, setEmbedData, guildId }) {
                         width="100%"
                         height={400}
                         previewConfig={{ showPreview: false }}
+                        emojiStyle={EmojiStyle.TWITTER}
                       />
 
                       {/* Custom Discord Emojis Section */}

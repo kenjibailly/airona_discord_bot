@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import EmojiPicker, { Theme } from "emoji-picker-react";
+import EmojiPicker, { Theme, EmojiStyle } from "emoji-picker-react";
 import Navbar from "../components/Navbar";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
@@ -353,6 +353,7 @@ export default function ReactionRoleEditor() {
                           width="100%"
                           height={400}
                           previewConfig={{ showPreview: false }}
+                          emojiStyle={EmojiStyle.TWITTER}
                         />
 
                         {/* Custom Discord Emojis Section */}
