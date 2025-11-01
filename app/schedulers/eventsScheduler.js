@@ -71,20 +71,33 @@ async function sendEventNotification(
       return;
     }
 
-    const channel = guild.channels.cache.get(settings.channelId);
-    if (!channel) {
-      logger.warn(
-        `Channel ${settings.channelId} not found in guild ${guild.name}`
-      );
+    // Select channel + role based on category
+    let channelId = null;
+    let roleId = null;
+
+    if (category === "boss") {
+      channelId = settings.bossChannelId;
+      roleId = settings.bossRoleId;
+    } else if (category === "guildActivity") {
+      channelId = settings.guildActivityChannelId;
+      roleId = settings.guildActivityRoleId;
+    } else if (category === "leisure") {
+      channelId = settings.leisureChannelId;
+      roleId = settings.leisureRoleId;
+    }
+
+    // Skip if no channel configured for this category
+    if (!channelId) {
       return;
     }
 
-    // Get the appropriate role based on category
-    let roleId;
-    if (category === "boss") roleId = settings.bossRoleId;
-    else if (category === "guildActivity")
-      roleId = settings.guildActivityRoleId;
-    else if (category === "leisure") roleId = settings.leisureRoleId;
+    const channel = guild.channels.cache.get(channelId);
+    if (!channel) {
+      logger.warn(
+        `Channel ${channelId} not found in guild ${guild.name} for category ${category}`
+      );
+      return;
+    }
 
     // If no role is configured, send message without ping
     let roleMention = "";
@@ -180,15 +193,26 @@ async function checkEvents(client) {
     });
 
     for (const module of activeModules) {
-      if (!module.settings.channelId) continue;
+      // Skip if no channels are configured at all
+      if (
+        !module.settings.bossChannelId &&
+        !module.settings.guildActivityChannelId &&
+        !module.settings.leisureChannelId
+      ) {
+        continue;
+      }
 
       const now = new Date();
       const currentDay = now.getUTCDay();
       const currentHour = now.getUTCHours();
       const currentMinute = now.getUTCMinutes();
 
-      // Check Boss Events
-      if (EVENTS.boss && EVENTS.boss.length > 0) {
+      // Check Boss Events (only if channel is configured)
+      if (
+        module.settings.bossChannelId &&
+        EVENTS.boss &&
+        EVENTS.boss.length > 0
+      ) {
         const minutesBefore = module.settings.bossMinutesBefore || 5;
 
         for (const event of EVENTS.boss) {
@@ -218,8 +242,12 @@ async function checkEvents(client) {
         }
       }
 
-      // Check Guild Activities
-      if (EVENTS.guildActivity && EVENTS.guildActivity.length > 0) {
+      // Check Guild Activities (only if channel is configured)
+      if (
+        module.settings.guildActivityChannelId &&
+        EVENTS.guildActivity &&
+        EVENTS.guildActivity.length > 0
+      ) {
         const minutesBefore = module.settings.guildActivityMinutesBefore || 5;
 
         for (const event of EVENTS.guildActivity) {
@@ -249,8 +277,12 @@ async function checkEvents(client) {
         }
       }
 
-      // Check Leisure Activities
-      if (EVENTS.leisure && EVENTS.leisure.length > 0) {
+      // Check Leisure Activities (only if channel is configured)
+      if (
+        module.settings.leisureChannelId &&
+        EVENTS.leisure &&
+        EVENTS.leisure.length > 0
+      ) {
         const minutesBefore = module.settings.leisureMinutesBefore || 5;
 
         for (const event of EVENTS.leisure) {

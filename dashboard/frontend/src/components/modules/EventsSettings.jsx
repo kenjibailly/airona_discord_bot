@@ -4,11 +4,13 @@ import styles from "../../styles/ModuleSettings.module.css";
 
 export default function EventsSettings({ guildId }) {
   const [settings, setSettings] = useState({
-    channelId: "",
+    bossChannelId: "",
     bossRoleId: "",
     bossMinutesBefore: 5,
+    guildActivityChannelId: "",
     guildActivityRoleId: "",
     guildActivityMinutesBefore: 5,
+    leisureChannelId: "",
     leisureRoleId: "",
     leisureMinutesBefore: 5,
     embedColor: "#00b4d8",
@@ -85,33 +87,46 @@ export default function EventsSettings({ guildId }) {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (!settings.channelId) {
-      alert("Please select a notification channel");
-      return;
-    }
-
-    // Validate minutes before (always validate, even if no role is set)
-    if (settings.bossMinutesBefore < 1 || settings.bossMinutesBefore > 60) {
-      alert("Boss events: Minutes before event must be between 1 and 60");
-      return;
-    }
-
+    // Validate that at least one channel is selected
     if (
-      settings.guildActivityMinutesBefore < 1 ||
-      settings.guildActivityMinutesBefore > 60
+      !settings.bossChannelId &&
+      !settings.guildActivityChannelId &&
+      !settings.leisureChannelId
     ) {
-      alert("Guild activities: Minutes before event must be between 1 and 60");
+      alert("Please select at least one notification channel");
       return;
     }
 
-    if (
-      settings.leisureMinutesBefore < 1 ||
-      settings.leisureMinutesBefore > 60
-    ) {
-      alert(
-        "Leisure activities: Minutes before event must be between 1 and 60"
-      );
-      return;
+    // Validate minutes before (only if channel is set)
+    if (settings.bossChannelId) {
+      if (settings.bossMinutesBefore < 1 || settings.bossMinutesBefore > 60) {
+        alert("Boss events: Minutes before event must be between 1 and 60");
+        return;
+      }
+    }
+
+    if (settings.guildActivityChannelId) {
+      if (
+        settings.guildActivityMinutesBefore < 1 ||
+        settings.guildActivityMinutesBefore > 60
+      ) {
+        alert(
+          "Guild activities: Minutes before event must be between 1 and 60"
+        );
+        return;
+      }
+    }
+
+    if (settings.leisureChannelId) {
+      if (
+        settings.leisureMinutesBefore < 1 ||
+        settings.leisureMinutesBefore > 60
+      ) {
+        alert(
+          "Leisure activities: Minutes before event must be between 1 and 60"
+        );
+        return;
+      }
     }
 
     setSaving(true);
@@ -262,29 +277,31 @@ export default function EventsSettings({ guildId }) {
 
   return (
     <form onSubmit={handleSave} className={styles.settingsForm}>
-      <div className={styles.formGroup}>
-        <label htmlFor="channelId">Notification Channel *</label>
-        <select
-          id="channelId"
-          name="channelId"
-          value={settings.channelId}
-          onChange={handleChange}
-          className={styles.select}
-          required
-        >
-          <option value="">Select a channel...</option>
-          {channels.map((channel) => (
-            <option key={channel.id} value={channel.id}>
-              # {channel.name}
-            </option>
-          ))}
-        </select>
-        <small>Channel where event notifications will be sent</small>
-      </div>
-
       {/* Boss Events Section */}
       <div className={styles.categorySection}>
         <h3 className={styles.categoryTitle}>🔥 Boss Events</h3>
+
+        <div className={styles.formGroup}>
+          <label htmlFor="bossChannelId">Notification Channel (Optional)</label>
+          <select
+            id="bossChannelId"
+            name="bossChannelId"
+            value={settings.bossChannelId}
+            onChange={handleChange}
+            className={styles.select}
+          >
+            <option value="">Disabled (no notifications)</option>
+            {channels.map((channel) => (
+              <option key={channel.id} value={channel.id}>
+                # {channel.name}
+              </option>
+            ))}
+          </select>
+          <small>
+            Channel where boss event notifications will be sent, or leave empty
+            to disable
+          </small>
+        </div>
 
         <div className={styles.formGroup}>
           <label htmlFor="bossRoleId">Role to Ping (Optional)</label>
@@ -294,6 +311,7 @@ export default function EventsSettings({ guildId }) {
             value={settings.bossRoleId}
             onChange={handleChange}
             className={styles.select}
+            disabled={!settings.bossChannelId}
           >
             <option value="">No role (notifications without ping)</option>
             {roles.map((role) => (
@@ -310,8 +328,9 @@ export default function EventsSettings({ guildId }) {
             ))}
           </select>
           <small>
-            Select a role to ping, or leave empty to send notifications without
-            pinging
+            {settings.bossChannelId
+              ? "Select a role to ping, or leave empty to send notifications without pinging"
+              : "Enable notifications by selecting a channel first"}
           </small>
         </div>
 
@@ -328,6 +347,7 @@ export default function EventsSettings({ guildId }) {
             max="60"
             value={settings.bossMinutesBefore}
             onChange={handleChange}
+            disabled={!settings.bossChannelId}
           />
           <small>
             How many minutes before boss events to send notification (1-60)
@@ -340,6 +360,30 @@ export default function EventsSettings({ guildId }) {
         <h3 className={styles.categoryTitle}>⚔️ Guild Activities</h3>
 
         <div className={styles.formGroup}>
+          <label htmlFor="guildActivityChannelId">
+            Notification Channel (Optional)
+          </label>
+          <select
+            id="guildActivityChannelId"
+            name="guildActivityChannelId"
+            value={settings.guildActivityChannelId}
+            onChange={handleChange}
+            className={styles.select}
+          >
+            <option value="">Disabled (no notifications)</option>
+            {channels.map((channel) => (
+              <option key={channel.id} value={channel.id}>
+                # {channel.name}
+              </option>
+            ))}
+          </select>
+          <small>
+            Channel where guild activity notifications will be sent, or leave
+            empty to disable
+          </small>
+        </div>
+
+        <div className={styles.formGroup}>
           <label htmlFor="guildActivityRoleId">Role to Ping (Optional)</label>
           <select
             id="guildActivityRoleId"
@@ -347,6 +391,7 @@ export default function EventsSettings({ guildId }) {
             value={settings.guildActivityRoleId}
             onChange={handleChange}
             className={styles.select}
+            disabled={!settings.guildActivityChannelId}
           >
             <option value="">No role (notifications without ping)</option>
             {roles.map((role) => (
@@ -363,8 +408,9 @@ export default function EventsSettings({ guildId }) {
             ))}
           </select>
           <small>
-            Select a role to ping, or leave empty to send notifications without
-            pinging
+            {settings.guildActivityChannelId
+              ? "Select a role to ping, or leave empty to send notifications without pinging"
+              : "Enable notifications by selecting a channel first"}
           </small>
         </div>
 
@@ -383,6 +429,7 @@ export default function EventsSettings({ guildId }) {
             max="60"
             value={settings.guildActivityMinutesBefore}
             onChange={handleChange}
+            disabled={!settings.guildActivityChannelId}
           />
           <small>
             How many minutes before guild activities to send notification (1-60)
@@ -395,6 +442,30 @@ export default function EventsSettings({ guildId }) {
         <h3 className={styles.categoryTitle}>🎯 Leisure Activities</h3>
 
         <div className={styles.formGroup}>
+          <label htmlFor="leisureChannelId">
+            Notification Channel (Optional)
+          </label>
+          <select
+            id="leisureChannelId"
+            name="leisureChannelId"
+            value={settings.leisureChannelId}
+            onChange={handleChange}
+            className={styles.select}
+          >
+            <option value="">Disabled (no notifications)</option>
+            {channels.map((channel) => (
+              <option key={channel.id} value={channel.id}>
+                # {channel.name}
+              </option>
+            ))}
+          </select>
+          <small>
+            Channel where leisure activity notifications will be sent, or leave
+            empty to disable
+          </small>
+        </div>
+
+        <div className={styles.formGroup}>
           <label htmlFor="leisureRoleId">Role to Ping (Optional)</label>
           <select
             id="leisureRoleId"
@@ -402,6 +473,7 @@ export default function EventsSettings({ guildId }) {
             value={settings.leisureRoleId}
             onChange={handleChange}
             className={styles.select}
+            disabled={!settings.leisureChannelId}
           >
             <option value="">No role (notifications without ping)</option>
             {roles.map((role) => (
@@ -418,8 +490,9 @@ export default function EventsSettings({ guildId }) {
             ))}
           </select>
           <small>
-            Select a role to ping, or leave empty to send notifications without
-            pinging
+            {settings.leisureChannelId
+              ? "Select a role to ping, or leave empty to send notifications without pinging"
+              : "Enable notifications by selecting a channel first"}
           </small>
         </div>
 
@@ -436,6 +509,7 @@ export default function EventsSettings({ guildId }) {
             max="60"
             value={settings.leisureMinutesBefore}
             onChange={handleChange}
+            disabled={!settings.leisureChannelId}
           />
           <small>
             How many minutes before leisure activities to send notification

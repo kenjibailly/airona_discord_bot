@@ -29,7 +29,6 @@ router.get("/", (req, res) => {
     }
 
     const events = JSON.parse(eventsData);
-
     res.json({
       success: true,
       events,
