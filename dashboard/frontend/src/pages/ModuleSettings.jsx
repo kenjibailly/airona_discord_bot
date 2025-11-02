@@ -8,6 +8,7 @@ import EventsSettings from "../components/modules/EventsSettings";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
 import RaidSettings from "../components/modules/RaidSettings";
+import GoodbyeSettings from "../components/modules/GoodbyeSettings";
 
 export default function ModuleSettings() {
   const { guildId, moduleId } = useParams();
@@ -18,6 +19,9 @@ export default function ModuleSettings() {
     switch (moduleId) {
       case "welcome":
         return <WelcomeSettings guildId={guildId} />;
+
+      case "goodbye":
+        return <GoodbyeSettings guildId={guildId} />;
 
       case "autorole":
         return <AutoRoleSettings guildId={guildId} />;
@@ -46,6 +50,7 @@ export default function ModuleSettings() {
   const getModuleTitle = () => {
     const titles = {
       welcome: "Welcome Messages",
+      goodbye: "Goodbye Messages",
       autorole: "Auto Role",
       reactionroles: "Reaction Roles",
       worldboss: "World Boss Notifier",

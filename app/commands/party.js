@@ -644,9 +644,14 @@ async function leaveParty(interaction, partyMessageId) {
     // Let them know they got promoted
     try {
       const user = await interaction.client.users.fetch(nextMember.userId);
-      await user.send(
-        `🎉 You’ve been promoted from the bench to the main party as a **${nextMember.class} - ${nextMember.spec} (${nextMember.range})** for **${party.raidName}**!`
-      );
+
+      const embed = new EmbedBuilder()
+        .setTitle("Raid Finder")
+        .setDescription(
+          `🎉 You’ve been promoted from the bench to the main party as a **${nextMember.class} - ${nextMember.spec} (${nextMember.range})** for **${party.raidName}**!`
+        )
+        .setColor("Green");
+      await user.send({ embeds: [embed] });
     } catch (err) {
       console.log("Could not DM promoted user:", err.message);
     }

@@ -44,6 +44,13 @@ router.get(
           category: "general",
         },
         {
+          id: "goodbye",
+          title: "Goodbye Messages",
+          description:
+            "Send customized goodbye messages when a member leaves the server",
+          category: "general",
+        },
+        {
           id: "autorole",
           title: "Auto Role",
           description:
