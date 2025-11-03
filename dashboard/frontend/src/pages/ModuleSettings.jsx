@@ -9,6 +9,7 @@ import useAuth from "../hooks/useAuth";
 import styles from "../styles/Dashboard.module.css";
 import RaidSettings from "../components/modules/RaidSettings";
 import GoodbyeSettings from "../components/modules/GoodbyeSettings";
+import TicketsSettings from "../components/modules/TicketsSettings";
 
 export default function ModuleSettings() {
   const { guildId, moduleId } = useParams();
@@ -28,6 +29,9 @@ export default function ModuleSettings() {
 
       case "reactionroles":
         return <ReactionRolesSettings guildId={guildId} />;
+
+      case "tickets":
+        return <TicketsSettings guildId={guildId} />;
 
       case "worldboss":
         return <WorldBossSettings guildId={guildId} />;
@@ -53,9 +57,10 @@ export default function ModuleSettings() {
       goodbye: "Goodbye Messages",
       autorole: "Auto Role",
       reactionroles: "Reaction Roles",
+      tickets: "Tickets",
       worldboss: "World Boss Notifier",
       events: "Events Notifier",
-      party_raid: "Raid Party Finder Settings",
+      party_raid: "Raid Party Finder",
     };
     return titles[moduleId] || moduleId;
   };

@@ -17,6 +17,25 @@ module.exports = {
     // Handle button interactions
     if (interaction.isButton()) {
       console.log("Button clicked:", interaction.customId);
+
+      const ticketCommand = interaction.client.commands.get("tickets");
+      if (
+        ticketCommand &&
+        ticketCommand.handleButton &&
+        interaction.customId.startsWith("tickets_")
+      ) {
+        try {
+          return await ticketCommand.handleButton(interaction);
+        } catch (error) {
+          console.error("Button interaction error:", error);
+          if (!interaction.replied && !interaction.deferred) {
+            return await interaction.reply({
+              content: "There was an error processing your selection!",
+              ephemeral: true,
+            });
+          }
+        }
+      }
       // Find the party command to handle button interactions
       const partyCommand = interaction.client.commands.get("party");
       if (partyCommand && partyCommand.handleButton) {

@@ -64,6 +64,12 @@ router.get(
             "Let members assign themselves roles by reacting to messages",
           category: "general",
         },
+        {
+          id: "tickets",
+          title: "Tickets",
+          description: "Setup a ticket system for your staff to handle",
+          category: "general",
+        },
         // Blue Protocol Modules
         {
           id: "worldboss",
