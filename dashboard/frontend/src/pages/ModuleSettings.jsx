@@ -10,38 +10,36 @@ import styles from "../styles/Dashboard.module.css";
 import RaidSettings from "../components/modules/RaidSettings";
 import GoodbyeSettings from "../components/modules/GoodbyeSettings";
 import TicketsSettings from "../components/modules/TicketsSettings";
+import StatusSettings from "../components/modules/StatusSettings";
 
 export default function ModuleSettings() {
   const { guildId, moduleId } = useParams();
   const navigate = useNavigate();
   const { user, guilds, loading } = useAuth();
 
+  // Check if this is an admin module (no guildId in route)
+  const isAdminModule = !guildId;
+
   const renderModuleSettings = () => {
     switch (moduleId) {
       case "welcome":
         return <WelcomeSettings guildId={guildId} />;
-
       case "goodbye":
         return <GoodbyeSettings guildId={guildId} />;
-
       case "autorole":
         return <AutoRoleSettings guildId={guildId} />;
-
       case "reactionroles":
         return <ReactionRolesSettings guildId={guildId} />;
-
       case "tickets":
         return <TicketsSettings guildId={guildId} />;
-
       case "worldboss":
         return <WorldBossSettings guildId={guildId} />;
-
       case "events":
         return <EventsSettings guildId={guildId} />;
-
       case "party_raid":
         return <RaidSettings guildId={guildId} />;
-
+      case "status":
+        return <StatusSettings />;
       default:
         return (
           <div>
@@ -61,6 +59,7 @@ export default function ModuleSettings() {
       worldboss: "World Boss Notifier",
       events: "Events Notifier",
       party_raid: "Raid Party Finder",
+      status: "Status",
     };
     return titles[moduleId] || moduleId;
   };
@@ -72,18 +71,17 @@ export default function ModuleSettings() {
   return (
     <div className={styles.container}>
       <Navbar user={user} guilds={guilds} selectedGuildId={guildId} />
-
       <div style={{ padding: "2rem" }}>
         <button
           className={styles.button}
-          onClick={() => navigate(`/guild/${guildId}`)}
+          onClick={() =>
+            isAdminModule ? navigate(`/admin`) : navigate(`/guild/${guildId}`)
+          }
           style={{ marginBottom: "1rem" }}
         >
-          ← Back to Guild Settings
+          ← Back to {isAdminModule ? "Admin" : "Guild"} Settings
         </button>
-
         <h1 style={{ marginBottom: "2rem" }}>{getModuleTitle()} Settings</h1>
-
         {renderModuleSettings()}
       </div>
     </div>

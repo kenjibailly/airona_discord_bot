@@ -8,7 +8,7 @@ export default function ModuleCard({
   description,
   enabled,
   onToggle,
-  guildId,
+  guildId, // Optional - only provided for guild modules
 }) {
   const [isEnabled, setIsEnabled] = useState(enabled);
   const [isToggling, setIsToggling] = useState(false);
@@ -17,12 +17,9 @@ export default function ModuleCard({
   const handleToggle = async (e) => {
     e.stopPropagation();
     e.preventDefault();
-
-    if (isToggling) return; // Prevent double clicks
-
+    if (isToggling) return;
     setIsToggling(true);
     const newState = !isEnabled;
-
     try {
       await onToggle(newState);
       setIsEnabled(newState);
@@ -34,7 +31,13 @@ export default function ModuleCard({
   };
 
   const handleCardClick = () => {
-    navigate(`/guild/${guildId}/module/${moduleId}`);
+    // If guildId is provided, it's a guild module
+    // Otherwise, it's an admin module
+    if (guildId) {
+      navigate(`/guild/${guildId}/module/${moduleId}`);
+    } else {
+      navigate(`/admin/module/${moduleId}`);
+    }
   };
 
   return (
@@ -44,7 +47,6 @@ export default function ModuleCard({
           <h3 className={styles.title}>{title}</h3>
           <p className={styles.description}>{description}</p>
         </div>
-
         <div
           className={styles.toggleWrapper}
           onClick={(e) => e.stopPropagation()}

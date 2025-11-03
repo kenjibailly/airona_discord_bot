@@ -6,6 +6,7 @@ import ModuleSettings from "./pages/ModuleSettings";
 import ReactionRoleEditor from "./pages/ReactionRoleEditor";
 import EmbedBuilder from "./pages/EmbedBuilder";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminSettings from "./pages/AdminSettings";
 
 export default function App() {
   return (
@@ -56,6 +57,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <EmbedBuilder />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/module/:moduleId"
+        element={
+          <ProtectedRoute>
+            <ModuleSettings />
           </ProtectedRoute>
         }
       />
