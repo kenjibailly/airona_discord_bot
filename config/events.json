@@ -76,6 +76,30 @@
       ],
       "days": [2, 4, 6, 0],
       "duration": 60
+    },
+    {
+      "name": "City Rally",
+      "times": [
+        { "hour": 1, "minute": 0 },
+        { "hour": 13, "minute": 0 },
+        { "hour": 15, "minute": 0 },
+        { "hour": 18, "minute": 0 },
+        { "hour": 21, "minute": 0 }
+      ],
+      "days": [2, 4, 6, 0],
+      "duration": 60
+    },
+    {
+      "name": "Wasteland Race",
+      "times": [
+        { "hour": 1, "minute": 0 },
+        { "hour": 13, "minute": 0 },
+        { "hour": 15, "minute": 0 },
+        { "hour": 18, "minute": 0 },
+        { "hour": 21, "minute": 0 }
+      ],
+      "days": [1, 3, 5, 0],
+      "duration": 60
     }
   ]
 }
