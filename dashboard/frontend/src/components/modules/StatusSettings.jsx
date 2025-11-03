@@ -12,7 +12,7 @@ export default function StatusSettings({ guildId }) {
 
   useEffect(() => {
     fetchSettings();
-  });
+  }, []);
 
   const fetchSettings = async () => {
     try {
