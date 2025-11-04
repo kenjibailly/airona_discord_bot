@@ -27,7 +27,7 @@ async function startPartyCleanupScheduler(client) {
         if (party.date && party.time) {
           const [day, month] = party.date.split("/").map(Number);
           const [hour, minute] = party.time.split(":").map(Number);
-          const year = now.getUTCFullYear();
+          const currentYear = now.getUTCFullYear();
 
           let offsetHours = 0;
           let offsetMinutes = 0;
@@ -41,23 +41,46 @@ async function startPartyCleanupScheduler(client) {
             }
           }
 
+          // Create the party datetime in the user's timezone
           partyDateTime = new Date(
-            Date.UTC(year, month - 1, day, hour, minute, 0)
+            Date.UTC(currentYear, month - 1, day, hour, minute, 0)
           );
+
+          // Convert from user's timezone to UTC
           partyDateTime.setUTCHours(partyDateTime.getUTCHours() - offsetHours);
           partyDateTime.setUTCMinutes(
             partyDateTime.getUTCMinutes() - offsetMinutes
           );
+
+          // If the date/time is in the past for this year, try next year
+          if (partyDateTime < now) {
+            partyDateTime = new Date(
+              Date.UTC(currentYear + 1, month - 1, day, hour, minute, 0)
+            );
+            partyDateTime.setUTCHours(
+              partyDateTime.getUTCHours() - offsetHours
+            );
+            partyDateTime.setUTCMinutes(
+              partyDateTime.getUTCMinutes() - offsetMinutes
+            );
+          }
         } else {
+          // Fallback to creation date if no date/time specified
           partyDateTime = new Date(party.createdAt);
         }
 
-        const hoursDiff = (now - partyDateTime) / (1000 * 60 * 60);
+        // Only delete if the party time has PASSED and enough hours have elapsed since then
+        const hoursSinceParty = (now - partyDateTime) / (1000 * 60 * 60);
 
-        if (hoursDiff >= deleteAfterHours) {
+        // Only delete if:
+        // 1. The party time has passed (hoursSinceParty > 0)
+        // 2. Enough time has elapsed since the party (hoursSinceParty >= deleteAfterHours)
+        if (hoursSinceParty >= deleteAfterHours) {
           await RaidParties.deleteOne({ _id: party._id });
           logger.success(
-            `[Party Cleanup] Deleted party ${party._id} (${party.raidName})`
+            `[Party Cleanup] Deleted party ${party._id} (${
+              party.raidName
+            }) - ${hoursSinceParty.toFixed(1)} hours after party time`
           );
 
           try {
