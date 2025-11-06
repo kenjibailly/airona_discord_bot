@@ -3,6 +3,7 @@ import { useState } from "react";
 import styles from "../styles/Dashboard.module.css";
 import useAuth from "../hooks/useAuth";
 import Login from "../pages/Login";
+import AironaLogo from "../assets/airona.png";
 
 export default function MainNavbar() {
   const { user, guilds, loading } = useAuth();
@@ -11,30 +12,11 @@ export default function MainNavbar() {
     return <div>Loading...</div>;
   }
 
-  const handleLogout = () => {
-    window.location.href = "/auth/logout";
-  };
-
-  const getAvatarUrl = (user) => {
-    if (!user) return null;
-    if (user.avatar) {
-      const extension = user.avatar.startsWith("a_") ? "gif" : "png";
-      return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${extension}`;
-    }
-    return `https://cdn.discordapp.com/embed/avatars/${
-      (parseInt(user.id) >> 22) % 6
-    }.png`;
-  };
-
-  const getGuildIconUrl = (guild) => {
-    if (!guild || !guild.icon) return null;
-    return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
-  };
-
   return (
     <nav className={styles.navBar}>
-      <div>
+      <div class={styles.navLinkContainer}>
         <a class={styles.navLink} href="/">
+        <img style={{width: "50px", height: "50px", borderRadius: "50%", marginRight: "2rem"}} src={AironaLogo} alt="" />
           Home
         </a>
         <a class={styles.navLink} href="/help">

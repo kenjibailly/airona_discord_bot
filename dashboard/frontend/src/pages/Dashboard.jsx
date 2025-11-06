@@ -25,8 +25,9 @@ export default function Dashboard() {
                 }&permissions=8&scope=bot`}
                 target="_blank"
                 rel="noopener noreferrer"
+                style={{ marginRight: "10px" }}
               >
-                Click here to invite the bot to your server
+                <button class={styles.button}>Add to server</button>
               </a>
             </p>
           </div>
@@ -45,8 +46,9 @@ export default function Dashboard() {
                 }&permissions=8&scope=bot`}
                 target="_blank"
                 rel="noopener noreferrer"
+                style={{ marginRight: "10px" }}
               >
-                Click here to invite the bot to your server
+                <button class={styles.button}>Add to server</button>
               </a>
             </p>
           </div>
