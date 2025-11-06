@@ -74,8 +74,23 @@
   font-size: 0.85rem;
 }
 
+/* In your ReactionRoleEditor.module.css or editorStyles */
 .multiSelect {
-  min-height: 120px;
+  min-height: 150px;
+}
+
+.multiSelect option {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.multiSelect option:checked {
+  background: #007bff !important;
+  color: white !important;
+}
+
+.multiSelect:focus option:checked {
+  background: #0056b3 !important;
 }
 
 .tooltip {

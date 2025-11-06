@@ -128,15 +128,6 @@ export default function ReactionRoleEditor() {
     }));
   };
 
-  const handleMultiSelect = (e, fieldName) => {
-    const options = Array.from(e.target.selectedOptions);
-    const values = options.map((opt) => opt.value);
-    setFormData((prev) => ({
-      ...prev,
-      [fieldName]: values,
-    }));
-  };
-
   const addReaction = () => {
     setFormData((prev) => ({
       ...prev,
@@ -164,7 +155,6 @@ export default function ReactionRoleEditor() {
   };
 
   const handleEmojiSelect = (index, emojiData) => {
-    // emoji-picker-react returns { emoji, unified, names, etc }
     updateReaction(index, "emoji", emojiData.emoji);
     updateReaction(index, "emojiName", emojiData.names?.[0] || emojiData.emoji);
     updateReaction(index, "isCustom", false);
@@ -391,17 +381,23 @@ export default function ReactionRoleEditor() {
                   <label>Roles *</label>
                   <select
                     multiple
-                    value={reaction.roleIds}
                     onChange={(e) => {
-                      const options = Array.from(e.target.selectedOptions);
-                      const values = options.map((opt) => opt.value);
-                      updateReaction(index, "roleIds", values);
+                      const selectedOptions = Array.from(
+                        e.target.selectedOptions,
+                        (option) => option.value
+                      );
+                      updateReaction(index, "roleIds", selectedOptions);
                     }}
                     className={editorStyles.multiSelect}
+                    size={Math.min(roles.length, 10)}
                     required
                   >
                     {roles.map((role) => (
-                      <option key={role.id} value={role.id}>
+                      <option
+                        key={role.id}
+                        value={role.id}
+                        selected={reaction.roleIds?.includes(role.id)}
+                      >
                         {role.name}
                       </option>
                     ))}
@@ -458,12 +454,25 @@ export default function ReactionRoleEditor() {
               </label>
               <select
                 multiple
-                value={formData.allowedRoles}
-                onChange={(e) => handleMultiSelect(e, "allowedRoles")}
+                onChange={(e) => {
+                  const selectedOptions = Array.from(
+                    e.target.selectedOptions,
+                    (option) => option.value
+                  );
+                  setFormData((prev) => ({
+                    ...prev,
+                    allowedRoles: selectedOptions,
+                  }));
+                }}
                 className={editorStyles.multiSelect}
+                size={Math.min(roles.length, 10)}
               >
                 {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
+                  <option
+                    key={role.id}
+                    value={role.id}
+                    selected={formData.allowedRoles?.includes(role.id)}
+                  >
                     {role.name}
                   </option>
                 ))}
@@ -485,12 +494,25 @@ export default function ReactionRoleEditor() {
               </label>
               <select
                 multiple
-                value={formData.ignoredRoles}
-                onChange={(e) => handleMultiSelect(e, "ignoredRoles")}
+                onChange={(e) => {
+                  const selectedOptions = Array.from(
+                    e.target.selectedOptions,
+                    (option) => option.value
+                  );
+                  setFormData((prev) => ({
+                    ...prev,
+                    ignoredRoles: selectedOptions,
+                  }));
+                }}
                 className={editorStyles.multiSelect}
+                size={Math.min(roles.length, 10)}
               >
                 {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
+                  <option
+                    key={role.id}
+                    value={role.id}
+                    selected={formData.ignoredRoles?.includes(role.id)}
+                  >
                     {role.name}
                   </option>
                 ))}

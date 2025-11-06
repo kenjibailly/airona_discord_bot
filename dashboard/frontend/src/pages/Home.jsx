@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Login from "./Login";
 import styles from "../styles/Dashboard.module.css";
+import MainNavbar from "../components/MainNavbar";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,17 +35,5 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
-  if (isAuthenticated) {
-    return (
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <h1>Welcome back!</h1>
-        <p>You are already logged in.</p>
-        <button class={styles.button} onClick={goToDashboard}>
-          Go to Dashboard
-        </button>
-      </div>
-    );
-  }
-
-  return <Login />;
+  return <MainNavbar />;
 }
