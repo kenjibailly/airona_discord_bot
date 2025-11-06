@@ -28,7 +28,7 @@ const WORLD_BOSSES = {
 const SPECIAL_BOSSES = [
   {
     name: "Lovely Boarlet",
-    level: "??",
+    level: "1",
     times: [
       { hour: 10, minute: 0 },
       { hour: 14, minute: 0 },
@@ -37,7 +37,7 @@ const SPECIAL_BOSSES = [
   },
   {
     name: "Breezy Boarlet",
-    level: "??",
+    level: "1",
     times: [
       { hour: 12, minute: 0 },
       { hour: 16, minute: 0 },
@@ -53,7 +53,8 @@ function hexToDecimal(hex) {
 async function sendBossNotification(
   client,
   guildId,
-  settings,
+  worldBossSettings,
+  embedColor,
   bossGroup,
   spawnTime
 ) {
@@ -64,18 +65,18 @@ async function sendBossNotification(
       return;
     }
 
-    const channel = guild.channels.cache.get(settings.channelId);
+    const channel = guild.channels.cache.get(worldBossSettings.channelId);
     if (!channel) {
       logger.warn(
-        `Channel ${settings.channelId} not found in guild ${guild.name}`
+        `Channel ${worldBossSettings.channelId} not found in guild ${guild.name}`
       );
       return;
     }
 
     // If no role is configured, send message without ping
     let roleMention = "";
-    if (settings.roleId) {
-      const role = guild.roles.cache.get(settings.roleId);
+    if (worldBossSettings.roleId) {
+      const role = guild.roles.cache.get(worldBossSettings.roleId);
       roleMention = role ? `<@&${role.id}>` : "";
     }
 
@@ -102,7 +103,7 @@ async function sendBossNotification(
       description: `World bosses are spawning in **${timeRemaining} minute${
         timeRemaining !== 1 ? "s" : ""
       }**!`,
-      color: hexToDecimal(settings.embedColor || "#ff6b00"),
+      color: hexToDecimal(embedColor || "#ff6b00"),
       fields: [
         {
           name: "Bosses Spawning",
@@ -142,7 +143,8 @@ async function sendBossNotification(
 async function sendSpecialBossNotification(
   client,
   guildId,
-  settings,
+  specialBossSettings,
+  embedColor,
   boss,
   spawnTime
 ) {
@@ -153,16 +155,20 @@ async function sendSpecialBossNotification(
       return;
     }
 
-    const channel = guild.channels.cache.get(settings.channelId);
+    const channel = guild.channels.cache.get(specialBossSettings.channelId);
     if (!channel) {
       logger.warn(
-        `Channel ${settings.channelId} not found in guild ${guild.name}`
+        `Channel ${specialBossSettings.channelId} not found in guild ${guild.name}`
       );
       return;
     }
 
-    const role = guild.roles.cache.get(settings.roleId);
-    const roleMention = role ? `<@&${role.id}>` : "@everyone";
+    // If no role is configured, send message without ping
+    let roleMention = "";
+    if (specialBossSettings.roleId) {
+      const role = guild.roles.cache.get(specialBossSettings.roleId);
+      roleMention = role ? `<@&${role.id}>` : "";
+    }
 
     // Calculate exact spawn time
     const now = new Date();
@@ -183,7 +189,7 @@ async function sendSpecialBossNotification(
       description: `**${boss.name}** is spawning in **${timeRemaining} minute${
         timeRemaining !== 1 ? "s" : ""
       }**!`,
-      color: hexToDecimal(settings.embedColor || "#ff6b00"),
+      color: hexToDecimal(embedColor || "#ff6b00"),
       fields: [
         {
           name: "Boss",
@@ -205,7 +211,9 @@ async function sendSpecialBossNotification(
     };
 
     await channel.send({
-      content: `${roleMention} Special boss incoming!`,
+      content: roleMention
+        ? `${roleMention} Special boss incoming!`
+        : "🐗 Special boss incoming!",
       embeds: [embed],
     });
 
@@ -218,7 +226,7 @@ async function sendSpecialBossNotification(
   }
 }
 
-async function checkAndNotify(client, spawnMinute) {
+async function checkAndNotifyWorldBosses(client, spawnMinute) {
   try {
     // Find all guilds with world boss module enabled
     const activeModules = await GuildModule.find({
@@ -227,11 +235,16 @@ async function checkAndNotify(client, spawnMinute) {
     });
 
     for (const module of activeModules) {
-      if (!module.settings.roleId || !module.settings.channelId) {
-        continue; // Skip if not properly configured
+      // Check if worldBoss settings exist and are configured
+      if (
+        !module.settings?.worldBoss?.channelId
+      ) {
+        continue; // Skip if world boss not properly configured
       }
 
-      const minutesBefore = module.settings.minutesBefore || 5;
+      const worldBossSettings = module.settings.worldBoss;
+      const embedColor = module.settings.embedColor;
+      const minutesBefore = worldBossSettings.minutesBefore || 5;
       const now = new Date();
       const currentMinute = now.getMinutes();
 
@@ -245,7 +258,8 @@ async function checkAndNotify(client, spawnMinute) {
         await sendBossNotification(
           client,
           module.guildId,
-          module.settings,
+          worldBossSettings,
+          embedColor,
           bossGroup,
           spawnMinute
         );
@@ -264,11 +278,16 @@ async function checkSpecialBosses(client) {
     });
 
     for (const module of activeModules) {
-      if (!module.settings.roleId || !module.settings.channelId) {
-        continue;
+      // Check if specialBoss settings exist and are configured
+      if (
+        !module.settings?.specialBoss?.channelId
+      ) {
+        continue; // Skip if special boss not properly configured
       }
 
-      const minutesBefore = module.settings.minutesBefore || 5;
+      const specialBossSettings = module.settings.specialBoss;
+      const embedColor = module.settings.embedColor;
+      const minutesBefore = specialBossSettings.minutesBefore || 5;
       const now = new Date();
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
@@ -295,7 +314,8 @@ async function checkSpecialBosses(client) {
             await sendSpecialBossNotification(
               client,
               module.guildId,
-              module.settings,
+              specialBossSettings,
+              embedColor,
               boss,
               spawnTime
             );
@@ -312,10 +332,10 @@ function startWorldBossScheduler(client) {
   // Run every minute to check if we need to send notifications
   cron.schedule("* * * * *", async () => {
     // Check for XX:00 spawns
-    await checkAndNotify(client, 0);
+    await checkAndNotifyWorldBosses(client, 0);
 
     // Check for XX:30 spawns
-    await checkAndNotify(client, 30);
+    await checkAndNotifyWorldBosses(client, 30);
 
     // Check for special timed bosses
     await checkSpecialBosses(client);

@@ -39,12 +39,19 @@ const SPECIAL_BOSSES = [
 ];
 
 export default function WorldBossSettings({ guildId }) {
-  const [settings, setSettings] = useState({
+  const [worldBossSettings, setWorldBossSettings] = useState({
     roleId: "",
     channelId: "",
     minutesBefore: 5,
-    embedColor: "#ff6b00",
   });
+  
+  const [specialBossSettings, setSpecialBossSettings] = useState({
+    roleId: "",
+    channelId: "",
+    minutesBefore: 5,
+  });
+
+  const [embedColor, setEmbedColor] = useState("#ff6b00");
   const [roles, setRoles] = useState([]);
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,11 +70,23 @@ export default function WorldBossSettings({ guildId }) {
         withCredentials: true,
       });
 
-      if (
-        response.data.settings &&
-        Object.keys(response.data.settings).length > 0
-      ) {
-        setSettings(response.data.settings);
+      if (response.data.settings && Object.keys(response.data.settings).length > 0) {
+        const settings = response.data.settings;
+        
+        // Load world boss settings
+        if (settings.worldBoss) {
+          setWorldBossSettings(settings.worldBoss);
+        }
+        
+        // Load special boss settings
+        if (settings.specialBoss) {
+          setSpecialBossSettings(settings.specialBoss);
+        }
+        
+        // Load embed color (shared between both)
+        if (settings.embedColor) {
+          setEmbedColor(settings.embedColor);
+        }
       }
       setLoading(false);
     } catch (err) {
@@ -104,13 +123,23 @@ export default function WorldBossSettings({ guildId }) {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (!settings.channelId) {
-      alert("Please select a notification channel");
+    if (!worldBossSettings.channelId) {
+      alert("Please select a notification channel for World Bosses");
       return;
     }
 
-    if (settings.minutesBefore < 1 || settings.minutesBefore > 60) {
-      alert("Minutes before spawn must be between 1 and 60");
+    if (!specialBossSettings.channelId) {
+      alert("Please select a notification channel for Special Bosses");
+      return;
+    }
+
+    if (worldBossSettings.minutesBefore < 1 || worldBossSettings.minutesBefore > 60) {
+      alert("World Boss minutes before spawn must be between 1 and 60");
+      return;
+    }
+
+    if (specialBossSettings.minutesBefore < 1 || specialBossSettings.minutesBefore > 60) {
+      alert("Special Boss minutes before spawn must be between 1 and 60");
       return;
     }
 
@@ -121,7 +150,11 @@ export default function WorldBossSettings({ guildId }) {
       await axios.put(
         `/guilds/${guildId}/modules/worldboss/settings`,
         {
-          settings,
+          settings: {
+            worldBoss: worldBossSettings,
+            specialBoss: specialBossSettings,
+            embedColor: embedColor,
+          },
         },
         { withCredentials: true }
       );
@@ -136,9 +169,17 @@ export default function WorldBossSettings({ guildId }) {
     }
   };
 
-  const handleChange = (e) => {
+  const handleWorldBossChange = (e) => {
     const { name, value } = e.target;
-    setSettings((prev) => ({
+    setWorldBossSettings((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSpecialBossChange = (e) => {
+    const { name, value } = e.target;
+    setSpecialBossSettings((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -156,100 +197,192 @@ export default function WorldBossSettings({ guildId }) {
 
   return (
     <form onSubmit={handleSave} className={styles.settingsForm}>
-      <div className={styles.formGroup}>
-        <label htmlFor="channelId">Notification Channel *</label>
-        <select
-          id="channelId"
-          name="channelId"
-          value={settings.channelId}
-          onChange={handleChange}
-          className={styles.select}
-          required
-        >
-          <option value="">Select a channel...</option>
-          {channels.map((channel) => (
-            <option key={channel.id} value={channel.id}>
-              # {channel.name}
-            </option>
-          ))}
-        </select>
-        <small>Channel where boss notifications will be sent</small>
-      </div>
+      <div className={styles.categorySection}>
+        <h3>⚔️ World Boss Settings</h3>
+        
+        <div className={styles.formGroup}>
+          <label htmlFor="worldBoss-channelId">Notification Channel *</label>
+          <select
+            id="worldBoss-channelId"
+            name="channelId"
+            value={worldBossSettings.channelId}
+            onChange={handleWorldBossChange}
+            className={styles.select}
+            required
+          >
+            <option value="">Select a channel...</option>
+            {channels.map((channel) => (
+              <option key={channel.id} value={channel.id}>
+                # {channel.name}
+              </option>
+            ))}
+          </select>
+          <small>Channel where boss notifications will be sent</small>
+        </div>
 
-      <div className={styles.formGroup}>
-        <label htmlFor="roleId">Role to Ping (Optional)</label>
-        <select
-          id="roleId"
-          name="roleId"
-          value={settings.roleId}
-          onChange={handleChange}
-          className={styles.select}
-        >
-          <option value="">No role (notifications without ping)</option>
-          {roles.map((role) => (
-            <option
-              key={role.id}
-              value={role.id}
+        <div className={styles.formGroup}>
+          <label htmlFor="worldBoss-roleId">Role to Ping (Optional)</label>
+          <select
+            id="worldBoss-roleId"
+            name="roleId"
+            value={worldBossSettings.roleId}
+            onChange={handleWorldBossChange}
+            className={styles.select}
+          >
+            <option value="">No role (notifications without ping)</option>
+            {roles.map((role) => (
+              <option
+                key={role.id}
+                value={role.id}
+                style={{
+                  color: getRoleColor(role.id),
+                  fontWeight: "500",
+                }}
+              >
+                {role.name}
+              </option>
+            ))}
+          </select>
+          <small>
+            Select a role to ping, or leave empty to send notifications without
+            pinging
+          </small>
+        </div>
+
+        {worldBossSettings.roleId && (
+          <div className={styles.preview}>
+            <strong>Selected Role:</strong>
+            <span
+              className={styles.rolePreview}
               style={{
-                color: getRoleColor(role.id),
-                fontWeight: "500",
+                color: getRoleColor(worldBossSettings.roleId),
+                backgroundColor: `${getRoleColor(worldBossSettings.roleId)}20`,
+                border: `1px solid ${getRoleColor(worldBossSettings.roleId)}`,
               }}
             >
-              {role.name}
-            </option>
-          ))}
-        </select>
-        <small>
-          Select a role to ping, or leave empty to send notifications without
-          pinging
-        </small>
-      </div>
+              {roles.find((r) => r.id === worldBossSettings.roleId)?.name ||
+                "Unknown Role"}
+            </span>
+          </div>
+        )}
 
-      {settings.roleId && (
-        <div className={styles.preview}>
-          <strong>Selected Role:</strong>
-          <span
-            className={styles.rolePreview}
-            style={{
-              color: getRoleColor(settings.roleId),
-              backgroundColor: `${getRoleColor(settings.roleId)}20`,
-              border: `1px solid ${getRoleColor(settings.roleId)}`,
-            }}
-          >
-            {roles.find((r) => r.id === settings.roleId)?.name ||
-              "Unknown Role"}
-          </span>
+        <div className={styles.formGroup}>
+          <label htmlFor="worldBoss-minutesBefore">Minutes Before Spawn *</label>
+          <input
+            id="worldBoss-minutesBefore"
+            className={styles.select}
+            name="minutesBefore"
+            type="number"
+            min="1"
+            max="60"
+            value={worldBossSettings.minutesBefore}
+            onChange={handleWorldBossChange}
+            required
+          />
+          <small>
+            How many minutes before the boss spawns to send the notification
+            (1-60)
+          </small>
         </div>
-      )}
+      </div>
 
-      <div className={styles.formGroup}>
-        <label htmlFor="minutesBefore">Minutes Before Spawn *</label>
-        <input
-          id="minutesBefore"
-          className={styles.select}
-          name="minutesBefore"
-          type="number"
-          min="1"
-          max="60"
-          value={settings.minutesBefore}
-          onChange={handleChange}
-          required
-        />
-        <small>
-          How many minutes before the boss spawns to send the notification
-          (1-60)
-        </small>
+      <div className={styles.categorySection}>
+        <h3>🐗 Special Boss Settings</h3>
+        <div className={styles.formGroup}>
+          <label htmlFor="specialBoss-channelId">Notification Channel *</label>
+          <select
+            id="specialBoss-channelId"
+            name="channelId"
+            value={specialBossSettings.channelId}
+            onChange={handleSpecialBossChange}
+            className={styles.select}
+            required
+          >
+            <option value="">Select a channel...</option>
+            {channels.map((channel) => (
+              <option key={channel.id} value={channel.id}>
+                # {channel.name}
+              </option>
+            ))}
+          </select>
+          <small>Channel where boss notifications will be sent</small>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label htmlFor="specialBoss-roleId">Role to Ping (Optional)</label>
+          <select
+            id="specialBoss-roleId"
+            name="roleId"
+            value={specialBossSettings.roleId}
+            onChange={handleSpecialBossChange}
+            className={styles.select}
+          >
+            <option value="">No role (notifications without ping)</option>
+            {roles.map((role) => (
+              <option
+                key={role.id}
+                value={role.id}
+                style={{
+                  color: getRoleColor(role.id),
+                  fontWeight: "500",
+                }}
+              >
+                {role.name}
+              </option>
+            ))}
+          </select>
+          <small>
+            Select a role to ping, or leave empty to send notifications without
+            pinging
+          </small>
+        </div>
+
+        {specialBossSettings.roleId && (
+          <div className={styles.preview}>
+            <strong>Selected Role:</strong>
+            <span
+              className={styles.rolePreview}
+              style={{
+                color: getRoleColor(specialBossSettings.roleId),
+                backgroundColor: `${getRoleColor(specialBossSettings.roleId)}20`,
+                border: `1px solid ${getRoleColor(specialBossSettings.roleId)}`,
+              }}
+            >
+              {roles.find((r) => r.id === specialBossSettings.roleId)?.name ||
+                "Unknown Role"}
+            </span>
+          </div>
+        )}
+
+        <div className={styles.formGroup}>
+          <label htmlFor="specialBoss-minutesBefore">Minutes Before Spawn *</label>
+          <input
+            id="specialBoss-minutesBefore"
+            className={styles.select}
+            name="minutesBefore"
+            type="number"
+            min="1"
+            max="60"
+            value={specialBossSettings.minutesBefore}
+            onChange={handleSpecialBossChange}
+            required
+          />
+          <small>
+            How many minutes before the boss spawns to send the notification
+            (1-60)
+          </small>
+        </div>
       </div>
 
       <div className={styles.formGroup}>
-        <label htmlFor="embedColor">Embed Color</label>
+        <label htmlFor="embedColor">Embed Color (Shared)</label>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <input
             id="embedColor"
             name="embedColor"
             type="text"
-            value={settings.embedColor}
-            onChange={handleChange}
+            value={embedColor}
+            onChange={(e) => setEmbedColor(e.target.value)}
             placeholder="#ff6b00"
             style={{
               flex: 1,
@@ -262,14 +395,12 @@ export default function WorldBossSettings({ guildId }) {
           />
           <input
             type="color"
-            value={settings.embedColor}
-            onChange={(e) =>
-              setSettings((prev) => ({ ...prev, embedColor: e.target.value }))
-            }
+            value={embedColor}
+            onChange={(e) => setEmbedColor(e.target.value)}
             style={{ width: "60px", height: "38px", cursor: "pointer" }}
           />
         </div>
-        <small>Color of the notification embed</small>
+        <small>Color of the notification embed (applies to both boss types)</small>
       </div>
 
       <div className={styles.infoBox}>
