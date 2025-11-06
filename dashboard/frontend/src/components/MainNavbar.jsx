@@ -26,28 +26,30 @@ export default function MainNavbar() {
           Status
         </a>
       </div>
-      <div style={{ textAlign: "center", marginLeft: "auto" }}>
-        <a
-          href={`https://discord.com/api/oauth2/authorize?client_id=${
-            import.meta.env.VITE_DISCORD_CLIENT_ID
-          }&permissions=8&scope=bot`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ marginRight: "10px" }}
-        >
-          <button class={styles.button}>Add to server</button>
-        </a>
-      </div>
-
-      {user ? (
-        <div style={{ textAlign: "center" }}>
-          <a href="/dashboard">
-            <button class={styles.button}>Dashboard</button>
+      <div style={{display: "inline-flex"}}>
+        <div style={{ textAlign: "center", marginLeft: "auto" }}>
+          <a
+            href={`https://discord.com/api/oauth2/authorize?client_id=${
+              import.meta.env.VITE_DISCORD_CLIENT_ID
+            }&permissions=8&scope=bot`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ marginRight: "10px" }}
+          >
+            <button class={styles.button}>Add to server</button>
           </a>
         </div>
-      ) : (
-        <Login />
-      )}
+
+        {user ? (
+          <div style={{ textAlign: "center" }}>
+            <a href="/dashboard">
+              <button class={styles.button}>Dashboard</button>
+            </a>
+          </div>
+        ) : (
+          <Login />
+        )}
+      </div>
     </nav>
   );
 }

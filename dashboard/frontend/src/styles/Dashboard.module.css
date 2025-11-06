@@ -107,10 +107,6 @@
 
 /* ─────────── Mobile Responsiveness ─────────── */
 @media (max-width: 768px) {
-  .navBar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 
   .dropdown {
     width: 100%;
@@ -120,6 +116,12 @@
     width: 100%;
     padding: 10px;
     font-size: 1rem;
+  }
+
+  .navBar .button {
+    width: unset;
+    padding: 5px 10px;
+    font-size: 0.9rem;
   }
 
   .selected {
