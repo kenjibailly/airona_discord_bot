@@ -11,6 +11,7 @@ import RaidSettings from "../components/modules/RaidSettings";
 import GoodbyeSettings from "../components/modules/GoodbyeSettings";
 import TicketsSettings from "../components/modules/TicketsSettings";
 import StatusSettings from "../components/modules/StatusSettings";
+import DungeonSettings from "../components/modules/DungeonSettings";
 
 export default function ModuleSettings() {
   const { guildId, moduleId } = useParams();
@@ -38,6 +39,8 @@ export default function ModuleSettings() {
         return <EventsSettings guildId={guildId} />;
       case "party_raid":
         return <RaidSettings guildId={guildId} />;
+      case "party_dungeon":
+        return <DungeonSettings guildId={guildId} />
       case "status":
         return <StatusSettings />;
       default:
@@ -59,6 +62,7 @@ export default function ModuleSettings() {
       worldboss: "World Boss Notifier",
       events: "Events Notifier",
       party_raid: "Raid Party Finder",
+      party_dungeon: "Dungeon Party Finder",
       status: "Status",
     };
     return titles[moduleId] || moduleId;

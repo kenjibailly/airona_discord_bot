@@ -90,6 +90,12 @@ router.get(
           description: "Settings for the Raid Party Finder.",
           category: "blueprotocol",
         },
+        {
+          id: "party_dungeon",
+          title: "Dungeon Party Finder",
+          description: "Settings for the Dungeon Party Finder.",
+          category: "blueprotocol",
+        },
       ];
 
       // Get module states from database
