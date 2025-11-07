@@ -276,7 +276,7 @@ async function handleInteraction(interaction, partyMessageId) {
     const parts = customId.split("_");
     const role = parts[2];
     const className = parts[3];
-    const spec = parts.slice(3).join(" ");
+    const spec = parts.slice(4).join(" ");
     await addToParty(interaction, role, className, spec, partyMessageId);
   }
   // Back button
