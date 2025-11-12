@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "../../styles/ReactionRoles.module.css";
 
-export default function ReactionRolesSettings({ guildId }) {
+export default function ReactionRolesSettings({ guildId, user }) {
   const [reactionRoles, setReactionRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ export default function ReactionRolesSettings({ guildId }) {
 
     try {
       await axios.delete(
-        `/guilds/${guildId}/reaction-roles/${reactionRoleId}`,
+        `/guilds/${guildId}/reaction-roles/${reactionRoleId}/${user.id}/@${user.username}`,
         {
           withCredentials: true,
         }
@@ -61,7 +61,7 @@ export default function ReactionRolesSettings({ guildId }) {
         <button
           className={styles.createButton}
           onClick={() =>
-            navigate(`/guild/${guildId}/module/reactionroles/create`)
+            navigate(`/guild/${guildId}/module/reactionroles/create/`)
           }
         >
           + Create New
@@ -106,7 +106,7 @@ export default function ReactionRolesSettings({ guildId }) {
                   className={styles.editButton}
                   onClick={() =>
                     navigate(
-                      `/guild/${guildId}/module/reactionroles/edit/${rr._id}`
+                      `/guild/${guildId}/module/reactionroles/edit/${rr._id}/`
                     )
                   }
                 >

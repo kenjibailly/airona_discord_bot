@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "../../styles/ModuleSettings.module.css";
 
-export default function TicketsSettings({ guildId }) {
+export default function TicketsSettings({ guildId, user }) {
   const [settings, setSettings] = useState({
     ticketsMessage: "",
     channelId: "",
@@ -76,7 +76,7 @@ export default function TicketsSettings({ guildId }) {
 
     try {
       await axios.put(
-        `/guilds/${guildId}/modules/tickets/settings`,
+        `/guilds/${guildId}/modules/tickets/settings/${user.id}/@${user.username}`,
         {
           settings,
         },

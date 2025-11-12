@@ -24,23 +24,23 @@ export default function ModuleSettings() {
   const renderModuleSettings = () => {
     switch (moduleId) {
       case "welcome":
-        return <WelcomeSettings guildId={guildId} />;
+        return <WelcomeSettings guildId={guildId} user={user} />;
       case "goodbye":
-        return <GoodbyeSettings guildId={guildId} />;
+        return <GoodbyeSettings guildId={guildId} user={user} />;
       case "autorole":
-        return <AutoRoleSettings guildId={guildId} />;
+        return <AutoRoleSettings guildId={guildId} user={user} />;
       case "reactionroles":
-        return <ReactionRolesSettings guildId={guildId} />;
+        return <ReactionRolesSettings guildId={guildId} user={user} />;
       case "tickets":
-        return <TicketsSettings guildId={guildId} />;
+        return <TicketsSettings guildId={guildId} user={user} />;
       case "worldboss":
-        return <WorldBossSettings guildId={guildId} />;
+        return <WorldBossSettings guildId={guildId} user={user} />;
       case "events":
-        return <EventsSettings guildId={guildId} />;
+        return <EventsSettings guildId={guildId} user={user} />;
       case "party_raid":
-        return <RaidSettings guildId={guildId} />;
+        return <RaidSettings guildId={guildId} user={user} />;
       case "party_dungeon":
-        return <DungeonSettings guildId={guildId} />
+        return <DungeonSettings guildId={guildId} user={user} />
       case "status":
         return <StatusSettings />;
       default:

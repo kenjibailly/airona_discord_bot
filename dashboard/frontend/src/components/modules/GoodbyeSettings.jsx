@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "../../styles/ModuleSettings.module.css";
 
-export default function GoodbyeSettings({ guildId }) {
+export default function GoodbyeSettings({ guildId, user }) {
   const [settings, setSettings] = useState({
     goodbyeMessage: "",
     channelId: "",
@@ -52,7 +52,7 @@ export default function GoodbyeSettings({ guildId }) {
 
     try {
       await axios.put(
-        `/guilds/${guildId}/modules/goodbye/settings`,
+        `/guilds/${guildId}/modules/goodbye/settings/${user.id}/@${user.username}`,
         {
           settings,
         },

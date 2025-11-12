@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "../../styles/ModuleSettings.module.css";
 
-export default function StatusSettings({ guildId }) {
+export default function StatusSettings({ guildId, user }) {
   const [settings, setSettings] = useState({
     statusMessage: "",
   });
@@ -36,7 +36,7 @@ export default function StatusSettings({ guildId }) {
 
     try {
       await axios.put(
-        `/api/admin/modules/status/settings`,
+        `/api/admin/modules/status/settings/${user.id}/@${user.username}`,
         {
           settings,
         },

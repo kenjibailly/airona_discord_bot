@@ -7,6 +7,7 @@ import ReactionRoleEditor from "./pages/ReactionRoleEditor";
 import EmbedBuilder from "./pages/EmbedBuilder";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminSettings from "./pages/AdminSettings";
+import ChangeLogs from "./pages/ChangeLogs";
 
 export default function App() {
   return (
@@ -37,7 +38,7 @@ export default function App() {
         }
       />
       <Route
-        path="/guild/:guildId/module/reactionroles/create"
+        path="/guild/:guildId/module/reactionroles/create/"
         element={
           <ProtectedRoute>
             <ReactionRoleEditor />
@@ -57,6 +58,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <EmbedBuilder />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/guild/:guildId/change-logs"
+        element={
+          <ProtectedRoute>
+            <ChangeLogs />
           </ProtectedRoute>
         }
       />

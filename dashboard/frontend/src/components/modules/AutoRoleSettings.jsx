@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "../../styles/ModuleSettings.module.css";
 
-export default function AutoRoleSettings({ guildId }) {
+export default function AutoRoleSettings({ guildId, user }) {
   const [settings, setSettings] = useState({
     roleId: "",
   });
@@ -61,7 +61,7 @@ export default function AutoRoleSettings({ guildId }) {
 
     try {
       await axios.put(
-        `/guilds/${guildId}/modules/autorole/settings`,
+        `/guilds/${guildId}/modules/autorole/settings/${user.id}/@${user.username}`,
         {
           settings,
         },

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "../../styles/ModuleSettings.module.css";
 
-export default function RaidSettings({ guildId }) {
+export default function RaidSettings({ guildId, user }) {
   const [settings, setSettings] = useState({
     deleteAfter: "",
   });
@@ -24,7 +24,6 @@ export default function RaidSettings({ guildId }) {
           withCredentials: true,
         }
       );
-      console.log(response.data.settings);
       if (response.data.settings) {
         setSettings(response.data.settings);
       }
@@ -62,7 +61,7 @@ export default function RaidSettings({ guildId }) {
 
     try {
       await axios.put(
-        `/guilds/${guildId}/modules/party_raid/settings`,
+        `/guilds/${guildId}/modules/party_raid/settings/${user.id}/@${user.username}`,
         {
           settings,
         },

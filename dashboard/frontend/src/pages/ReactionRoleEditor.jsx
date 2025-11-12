@@ -191,14 +191,14 @@ export default function ReactionRoleEditor() {
     try {
       if (isEdit) {
         await axios.put(
-          `/guilds/${guildId}/reaction-roles/${reactionRoleId}`,
+          `/guilds/${guildId}/reaction-roles/${reactionRoleId}/${user.id}/@${user.username}`,
           formData,
           {
             withCredentials: true,
           }
         );
       } else {
-        await axios.post(`/guilds/${guildId}/reaction-roles`, formData, {
+        await axios.post(`/guilds/${guildId}/reaction-roles/${user.id}/@${user.username}`, formData, {
           withCredentials: true,
         });
       }

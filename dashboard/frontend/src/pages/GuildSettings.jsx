@@ -55,7 +55,7 @@ export default function GuildSettings() {
   const handleModuleToggle = async (moduleId, newState) => {
     try {
       await axios.post(
-        `/guilds/${guildId}/modules/${moduleId}/toggle`,
+        `/guilds/${guildId}/modules/${moduleId}/toggle/${user.id}/@${user.username}`,
         {
           enabled: newState,
         },
@@ -90,7 +90,7 @@ export default function GuildSettings() {
   return (
     <div className={styles.container}>
       <Navbar user={user} guilds={guilds} selectedGuildId={guildId} />
-
+      <button style={{marginTop: "20px", marginLeft: "20px"}} className={styles.button} onClick={() => navigate(`/guild/${guildId}/change-logs`)}>Change Logs</button>
       <div style={{ padding: "2rem" }}>
         <div
           style={{

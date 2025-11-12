@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "../../styles/ModuleSettings.module.css";
 
-export default function EventsSettings({ guildId }) {
+export default function EventsSettings({ guildId, user }) {
   const [settings, setSettings] = useState({
     bossChannelId: "",
     bossRoleId: "",
@@ -134,7 +134,7 @@ export default function EventsSettings({ guildId }) {
 
     try {
       await axios.put(
-        `/guilds/${guildId}/modules/events/settings`,
+        `/guilds/${guildId}/modules/events/settings/${user.id}/@${user.username}`,
         {
           settings,
         },

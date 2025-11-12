@@ -38,7 +38,7 @@ const SPECIAL_BOSSES = [
   },
 ];
 
-export default function WorldBossSettings({ guildId }) {
+export default function WorldBossSettings({ guildId, user }) {
   const [worldBossSettings, setWorldBossSettings] = useState({
     roleId: "",
     channelId: "",
@@ -148,7 +148,7 @@ export default function WorldBossSettings({ guildId }) {
 
     try {
       await axios.put(
-        `/guilds/${guildId}/modules/worldboss/settings`,
+        `/guilds/${guildId}/modules/worldboss/settings/${user.id}/@${user.username}`,
         {
           settings: {
             worldBoss: worldBossSettings,

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const GuildModule = require("../models/GuildModule");
 const ReactionRole = require("../models/ReactionRole");
+const ChangeLog = require("../models/ChangeLog");
 
 // Middleware to check if user is authenticated
 function requireAuth(req, res, next) {
@@ -127,11 +128,11 @@ router.get(
 
 // Toggle module for a guild
 router.post(
-  "/:guildId/modules/:moduleId/toggle",
+  "/:guildId/modules/:moduleId/toggle/:userId/:userName",
   requireAuth,
   checkGuildPermission,
   async (req, res) => {
-    const { guildId, moduleId } = req.params;
+    const { guildId, moduleId, userId, userName } = req.params;
     const { enabled } = req.body;
 
     try {
@@ -152,6 +153,18 @@ router.post(
         });
         await guildModule.save();
       }
+
+      const changeLog = new ChangeLog({
+        guildId,
+        moduleId,
+        user: {
+          id: userId,
+          name: userName,
+        },
+        description: `Set to ${enabled ? "enabled" : "disabled"}`,
+      });
+
+      await changeLog.save();
 
       console.log(`Module ${moduleId} for guild ${guildId} set to ${enabled}`);
 
@@ -206,11 +219,11 @@ router.get(
 
 // Update module settings (for detailed settings page)
 router.put(
-  "/:guildId/modules/:moduleId/settings",
+  "/:guildId/modules/:moduleId/settings/:userId/:userName",
   requireAuth,
   checkGuildPermission,
   async (req, res) => {
-    const { guildId, moduleId } = req.params;
+    const { guildId, moduleId, userId, userName } = req.params;
     const { settings } = req.body;
 
     console.log(
@@ -220,13 +233,132 @@ router.put(
 
     try {
       let guildModule = await GuildModule.findOne({ guildId, moduleId });
+      let changeDescription = "Updated";
 
       if (guildModule) {
+        // Compare old and new settings to generate detailed description
+        const oldSettings = guildModule.settings || {};
+        const changes = [];
+
+        // Helper function to convert camelCase/PascalCase to readable text
+        const toReadable = (key) => {
+          return key
+            // Insert space before capital letters
+            .replace(/([A-Z])/g, " $1")
+            // Handle numbers
+            .replace(/(\d+)/g, " $1")
+            // Convert to lowercase and trim
+            .toLowerCase()
+            .trim()
+            // Replace underscores and hyphens with spaces
+            .replace(/[_-]/g, " ")
+            // Remove multiple spaces
+            .replace(/\s+/g, " ");
+        };
+
+        // Helper function to deeply compare objects
+        const compareObjects = (oldObj, newObj, path = []) => {
+          const allKeys = new Set([
+            ...Object.keys(oldObj || {}),
+            ...Object.keys(newObj || {}),
+          ]);
+
+          for (const key of allKeys) {
+            const oldVal = oldObj?.[key];
+            const newVal = newObj?.[key];
+            const currentPath = [...path, key];
+
+            // Skip if values are the same
+            if (JSON.stringify(oldVal) === JSON.stringify(newVal)) {
+              continue;
+            }
+
+            // Handle nested objects
+            if (
+              typeof newVal === "object" &&
+              newVal !== null &&
+              !Array.isArray(newVal) &&
+              typeof oldVal === "object" &&
+              oldVal !== null &&
+              !Array.isArray(oldVal)
+            ) {
+              // Recursively compare nested objects
+              compareObjects(oldVal, newVal, currentPath);
+            } else {
+              // Create readable path (e.g., "world boss channel id" from worldBoss.channelId)
+              const readablePath = currentPath.map(toReadable).join(" ");
+
+              // Determine type of change
+              if (oldVal === undefined || oldVal === "" || oldVal === null) {
+                changes.push(`set ${readablePath}`);
+              } else if (
+                newVal === undefined ||
+                newVal === "" ||
+                newVal === null
+              ) {
+                changes.push(`removed ${readablePath}`);
+              } else {
+                changes.push(`changed ${readablePath}`);
+              }
+            }
+          }
+        };
+
+        compareObjects(oldSettings, settings);
+
+        // Generate description based on changes
+        if (changes.length === 0) {
+          changeDescription = "No changes made";
+        } else if (changes.length === 1) {
+          changeDescription = `Updated: ${changes[0]}`;
+        } else if (changes.length === 2) {
+          changeDescription = `Updated: ${changes[0]} and ${changes[1]}`;
+        } else if (changes.length <= 5) {
+          // For 3-5 changes, list them all
+          const lastChange = changes.pop();
+          changeDescription = `Updated: ${changes.join(", ")}, and ${lastChange}`;
+        } else {
+          // For many changes, just show count
+          changeDescription = `Updated ${changes.length} settings`;
+        }
+
         guildModule.settings = settings;
         guildModule.updatedAt = new Date();
         await guildModule.save();
+
+        const changeLog = new ChangeLog({
+          guildId,
+          moduleId,
+          user: {
+            id: userId,
+            name: userName,
+          },
+          description: changeDescription,
+        });
+
+        await changeLog.save();
       } else {
-        // Create with settings
+        // Create with settings - count configured fields
+        const countConfiguredFields = (obj) => {
+          let count = 0;
+          for (const value of Object.values(obj || {})) {
+            if (value && typeof value === "object" && !Array.isArray(value)) {
+              count += countConfiguredFields(value);
+            } else if (value !== undefined && value !== null && value !== "") {
+              count++;
+            }
+          }
+          return count;
+        };
+
+        const configuredCount = countConfiguredFields(settings);
+        changeDescription =
+          configuredCount > 0
+            ? `Initial configuration (${configuredCount} setting${
+                configuredCount !== 1 ? "s" : ""
+              })`
+            : "Initial configuration";
+
         guildModule = new GuildModule({
           guildId,
           moduleId,
@@ -234,6 +366,18 @@ router.put(
           settings,
         });
         await guildModule.save();
+
+        const changeLog = new ChangeLog({
+          guildId,
+          moduleId,
+          user: {
+            id: userId,
+            name: userName,
+          },
+          description: changeDescription,
+        });
+
+        await changeLog.save();
       }
 
       res.json({
@@ -251,7 +395,6 @@ router.put(
 );
 
 const axios = require("axios");
-
 // Add this route after your existing routes
 router.get(
   "/:guildId/channels",
@@ -393,13 +536,51 @@ router.get(
   }
 );
 
-// Get specific reaction role
-router.put(
-  "/:guildId/reaction-roles/:reactionRoleId",
+router.get(
+  "/:guildId/change_logs",
   requireAuth,
   checkGuildPermission,
   async (req, res) => {
-    const { guildId, reactionRoleId } = req.params;
+    const { guildId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    try {
+      // Get total count for pagination info
+      const totalLogs = await ChangeLog.countDocuments({ guildId });
+      
+      // Get paginated logs, sorted by most recent first
+      const changeLogs = await ChangeLog.find({ guildId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      res.json({
+        changeLogs,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalLogs / limit),
+          totalLogs,
+          logsPerPage: limit,
+          hasNextPage: page < Math.ceil(totalLogs / limit),
+          hasPrevPage: page > 1,
+        },
+      });
+    } catch (err) {
+      console.error("Error fetching change logs:", err);
+      res.status(500).json({ error: "Failed to fetch change logs" });
+    }
+  }
+);
+
+
+router.put(
+  "/:guildId/reaction-roles/:reactionRoleId/:userId/:userName",
+  requireAuth,
+  checkGuildPermission,
+  async (req, res) => {
+    const { guildId, reactionRoleId, userId, userName } = req.params;
     const {
       name,
       messageLink,
@@ -421,6 +602,24 @@ router.put(
         return res.status(404).json({ error: "Reaction role not found" });
       }
 
+      // Track changes for changelog
+      const changes = [];
+
+      // Helper function to convert camelCase to readable text
+      const toReadable = (key) => {
+        return key
+          .replace(/([A-Z])/g, " $1")
+          .toLowerCase()
+          .trim()
+          .replace(/[_-]/g, " ")
+          .replace(/\s+/g, " ");
+      };
+
+      // Check what changed
+      if (reactionRole.name !== name) {
+        changes.push(`changed name to "${name}"`);
+      }
+
       // Parse message link
       const linkMatch = messageLink.match(/channels\/(\d+)\/(\d+)\/(\d+)/);
 
@@ -438,6 +637,8 @@ router.put(
 
       // If message changed, verify new message exists
       if (messageId !== reactionRole.messageId) {
+        changes.push("changed message");
+        
         try {
           await axios.get(
             `https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`,
@@ -506,6 +707,49 @@ router.put(
         }
       }
 
+      // Check reaction changes
+      const oldReactionCount = reactionRole.reactions.length;
+      const newReactionCount = reactions.length;
+      
+      if (oldReactionCount !== newReactionCount) {
+        if (newReactionCount > oldReactionCount) {
+          const diff = newReactionCount - oldReactionCount;
+          changes.push(`added ${diff} reaction${diff !== 1 ? 's' : ''}`);
+        } else {
+          const diff = oldReactionCount - newReactionCount;
+          changes.push(`removed ${diff} reaction${diff !== 1 ? 's' : ''}`);
+        }
+      } else if (JSON.stringify(reactionRole.reactions) !== JSON.stringify(reactions)) {
+        changes.push("modified reactions");
+      }
+
+      // Check type change
+      if (reactionRole.type !== type) {
+        changes.push(`changed type to "${type}"`);
+      }
+
+      // Check role restrictions
+      const oldAllowedRoles = JSON.stringify((reactionRole.allowedRoles || []).sort());
+      const newAllowedRoles = JSON.stringify((allowedRoles || []).sort());
+      if (oldAllowedRoles !== newAllowedRoles) {
+        changes.push("changed allowed roles");
+      }
+
+      const oldIgnoredRoles = JSON.stringify((reactionRole.ignoredRoles || []).sort());
+      const newIgnoredRoles = JSON.stringify((ignoredRoles || []).sort());
+      if (oldIgnoredRoles !== newIgnoredRoles) {
+        changes.push("changed ignored roles");
+      }
+
+      // Check boolean options
+      if (reactionRole.allowMultiple !== allowMultiple) {
+        changes.push(`${allowMultiple ? 'enabled' : 'disabled'} allow multiple`);
+      }
+
+      if (reactionRole.keepCounterAtOne !== keepCounterAtOne) {
+        changes.push(`${keepCounterAtOne ? 'enabled' : 'disabled'} keep counter at one`);
+      }
+
       // Update fields
       reactionRole.name = name;
       reactionRole.messageLink = messageLink;
@@ -546,6 +790,36 @@ router.put(
         }
       }
 
+      // Generate changelog description
+      let changeDescription = "No changes made";
+      if (changes.length === 1) {
+        changeDescription = `Updated: ${changes[0]}`;
+      } else if (changes.length === 2) {
+        changeDescription = `Updated: ${changes[0]} and ${changes[1]}`;
+      } else if (changes.length > 2 && changes.length <= 5) {
+        const lastChange = changes.pop();
+        changeDescription = `Updated: ${changes.join(", ")}, and ${lastChange}`;
+      } else if (changes.length > 5) {
+        changeDescription = `Updated ${changes.length} settings`;
+      }
+
+      // Create changelog entry
+      const changeLog = new ChangeLog({
+        guildId,
+        moduleId: "reaction roles",
+        user: {
+          id: userId,
+          name: userName,
+        },
+        description: changeDescription,
+        metadata: {
+          reactionRoleId: reactionRole._id,
+          reactionRoleName: name,
+        },
+      });
+
+      await changeLog.save();
+
       res.json({ success: true, reactionRole });
     } catch (err) {
       console.error("Error updating reaction role:", err);
@@ -556,11 +830,11 @@ router.put(
 
 // Create reaction role
 router.post(
-  "/:guildId/reaction-roles",
+  "/:guildId/reaction-roles/:userId/:userName",
   requireAuth,
   checkGuildPermission,
   async (req, res) => {
-    const { guildId } = req.params;
+    const { guildId, userId, userName } = req.params;
     const {
       name,
       messageLink,
@@ -647,6 +921,18 @@ router.post(
       }
 
       logger.success(`Created reaction role "${name}" for guild ${guildId}`);
+
+       const changeLog = new ChangeLog({
+          guildId,
+          moduleId: "reaction role",
+          user: {
+            id: userId,
+            name: userName,
+          },
+          description: `${name} created`,
+        });
+
+        await changeLog.save();
 
       res.json({ success: true, reactionRole });
     } catch (err) {
@@ -820,11 +1106,11 @@ router.put(
 
 // Delete reaction role
 router.delete(
-  "/:guildId/reaction-roles/:reactionRoleId",
+  "/:guildId/reaction-roles/:reactionRoleId/:userId/:userName",
   requireAuth,
   checkGuildPermission,
   async (req, res) => {
-    const { guildId, reactionRoleId } = req.params;
+    const { guildId, reactionRoleId, userId, userName } = req.params;
 
     try {
       const reactionRole = await ReactionRole.findOne({
@@ -854,6 +1140,18 @@ router.delete(
       }
 
       await reactionRole.deleteOne();
+
+      const changeLog = new ChangeLog({
+          guildId,
+          moduleId: "reaction role",
+          user: {
+            id: userId,
+            name: userName,
+          },
+          description: `${reactionRole.name} deleted`,
+        });
+
+        await changeLog.save();
 
       res.json({ success: true });
     } catch (err) {
