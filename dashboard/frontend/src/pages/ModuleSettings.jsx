@@ -12,6 +12,7 @@ import GoodbyeSettings from "../components/modules/GoodbyeSettings";
 import TicketsSettings from "../components/modules/TicketsSettings";
 import StatusSettings from "../components/modules/StatusSettings";
 import DungeonSettings from "../components/modules/DungeonSettings";
+import AddRoleSettings from "../components/modules/AddRoleSettings";
 
 export default function ModuleSettings() {
   const { guildId, moduleId } = useParams();
@@ -29,6 +30,8 @@ export default function ModuleSettings() {
         return <GoodbyeSettings guildId={guildId} user={user} />;
       case "autorole":
         return <AutoRoleSettings guildId={guildId} user={user} />;
+      case "addrole":
+        return <AddRoleSettings guildId={guildId} user={user} />;
       case "reactionroles":
         return <ReactionRolesSettings guildId={guildId} user={user} />;
       case "tickets":
@@ -40,7 +43,7 @@ export default function ModuleSettings() {
       case "party_raid":
         return <RaidSettings guildId={guildId} user={user} />;
       case "party_dungeon":
-        return <DungeonSettings guildId={guildId} user={user} />
+        return <DungeonSettings guildId={guildId} user={user} />;
       case "status":
         return <StatusSettings />;
       default:

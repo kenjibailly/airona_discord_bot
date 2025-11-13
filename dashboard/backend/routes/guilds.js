@@ -71,6 +71,12 @@ router.get(
           description: "Setup a ticket system for your staff to handle",
           category: "general",
         },
+        {
+          id: "addrole",
+          title: "Add Role",
+          description: "Settings for the add-role command",
+          category: "general",
+        },
         // Blue Protocol Modules
         {
           id: "worldboss",
@@ -242,18 +248,20 @@ router.put(
 
         // Helper function to convert camelCase/PascalCase to readable text
         const toReadable = (key) => {
-          return key
-            // Insert space before capital letters
-            .replace(/([A-Z])/g, " $1")
-            // Handle numbers
-            .replace(/(\d+)/g, " $1")
-            // Convert to lowercase and trim
-            .toLowerCase()
-            .trim()
-            // Replace underscores and hyphens with spaces
-            .replace(/[_-]/g, " ")
-            // Remove multiple spaces
-            .replace(/\s+/g, " ");
+          return (
+            key
+              // Insert space before capital letters
+              .replace(/([A-Z])/g, " $1")
+              // Handle numbers
+              .replace(/(\d+)/g, " $1")
+              // Convert to lowercase and trim
+              .toLowerCase()
+              .trim()
+              // Replace underscores and hyphens with spaces
+              .replace(/[_-]/g, " ")
+              // Remove multiple spaces
+              .replace(/\s+/g, " ")
+          );
         };
 
         // Helper function to deeply compare objects
@@ -316,7 +324,9 @@ router.put(
         } else if (changes.length <= 5) {
           // For 3-5 changes, list them all
           const lastChange = changes.pop();
-          changeDescription = `Updated: ${changes.join(", ")}, and ${lastChange}`;
+          changeDescription = `Updated: ${changes.join(
+            ", "
+          )}, and ${lastChange}`;
         } else {
           // For many changes, just show count
           changeDescription = `Updated ${changes.length} settings`;
@@ -549,7 +559,7 @@ router.get(
     try {
       // Get total count for pagination info
       const totalLogs = await ChangeLog.countDocuments({ guildId });
-      
+
       // Get paginated logs, sorted by most recent first
       const changeLogs = await ChangeLog.find({ guildId })
         .sort({ createdAt: -1 })
@@ -573,7 +583,6 @@ router.get(
     }
   }
 );
-
 
 router.put(
   "/:guildId/reaction-roles/:reactionRoleId/:userId/:userName",
@@ -638,7 +647,7 @@ router.put(
       // If message changed, verify new message exists
       if (messageId !== reactionRole.messageId) {
         changes.push("changed message");
-        
+
         try {
           await axios.get(
             `https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`,
@@ -710,16 +719,18 @@ router.put(
       // Check reaction changes
       const oldReactionCount = reactionRole.reactions.length;
       const newReactionCount = reactions.length;
-      
+
       if (oldReactionCount !== newReactionCount) {
         if (newReactionCount > oldReactionCount) {
           const diff = newReactionCount - oldReactionCount;
-          changes.push(`added ${diff} reaction${diff !== 1 ? 's' : ''}`);
+          changes.push(`added ${diff} reaction${diff !== 1 ? "s" : ""}`);
         } else {
           const diff = oldReactionCount - newReactionCount;
-          changes.push(`removed ${diff} reaction${diff !== 1 ? 's' : ''}`);
+          changes.push(`removed ${diff} reaction${diff !== 1 ? "s" : ""}`);
         }
-      } else if (JSON.stringify(reactionRole.reactions) !== JSON.stringify(reactions)) {
+      } else if (
+        JSON.stringify(reactionRole.reactions) !== JSON.stringify(reactions)
+      ) {
         changes.push("modified reactions");
       }
 
@@ -729,13 +740,17 @@ router.put(
       }
 
       // Check role restrictions
-      const oldAllowedRoles = JSON.stringify((reactionRole.allowedRoles || []).sort());
+      const oldAllowedRoles = JSON.stringify(
+        (reactionRole.allowedRoles || []).sort()
+      );
       const newAllowedRoles = JSON.stringify((allowedRoles || []).sort());
       if (oldAllowedRoles !== newAllowedRoles) {
         changes.push("changed allowed roles");
       }
 
-      const oldIgnoredRoles = JSON.stringify((reactionRole.ignoredRoles || []).sort());
+      const oldIgnoredRoles = JSON.stringify(
+        (reactionRole.ignoredRoles || []).sort()
+      );
       const newIgnoredRoles = JSON.stringify((ignoredRoles || []).sort());
       if (oldIgnoredRoles !== newIgnoredRoles) {
         changes.push("changed ignored roles");
@@ -743,11 +758,15 @@ router.put(
 
       // Check boolean options
       if (reactionRole.allowMultiple !== allowMultiple) {
-        changes.push(`${allowMultiple ? 'enabled' : 'disabled'} allow multiple`);
+        changes.push(
+          `${allowMultiple ? "enabled" : "disabled"} allow multiple`
+        );
       }
 
       if (reactionRole.keepCounterAtOne !== keepCounterAtOne) {
-        changes.push(`${keepCounterAtOne ? 'enabled' : 'disabled'} keep counter at one`);
+        changes.push(
+          `${keepCounterAtOne ? "enabled" : "disabled"} keep counter at one`
+        );
       }
 
       // Update fields
@@ -922,17 +941,17 @@ router.post(
 
       logger.success(`Created reaction role "${name}" for guild ${guildId}`);
 
-       const changeLog = new ChangeLog({
-          guildId,
-          moduleId: "reaction role",
-          user: {
-            id: userId,
-            name: userName,
-          },
-          description: `${name} created`,
-        });
+      const changeLog = new ChangeLog({
+        guildId,
+        moduleId: "reaction role",
+        user: {
+          id: userId,
+          name: userName,
+        },
+        description: `${name} created`,
+      });
 
-        await changeLog.save();
+      await changeLog.save();
 
       res.json({ success: true, reactionRole });
     } catch (err) {
@@ -1142,16 +1161,16 @@ router.delete(
       await reactionRole.deleteOne();
 
       const changeLog = new ChangeLog({
-          guildId,
-          moduleId: "reaction role",
-          user: {
-            id: userId,
-            name: userName,
-          },
-          description: `${reactionRole.name} deleted`,
-        });
+        guildId,
+        moduleId: "reaction role",
+        user: {
+          id: userId,
+          name: userName,
+        },
+        description: `${reactionRole.name} deleted`,
+      });
 
-        await changeLog.save();
+      await changeLog.save();
 
       res.json({ success: true });
     } catch (err) {

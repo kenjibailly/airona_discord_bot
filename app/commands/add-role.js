@@ -3,11 +3,12 @@ const {
   PermissionFlagsBits,
   EmbedBuilder,
 } = require("discord.js");
+const GuildModule = require("../models/GuildModule");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("add-role")
-    .setDescription("Add a role to a user (and remove Visitor if present)")
+    .setDescription("Add a role to a user")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addUserOption((option) =>
       option
@@ -39,13 +40,27 @@ module.exports = {
     }
 
     try {
-      // Remove "Visitor" role if it exists
-      const visitorRole = interaction.guild.roles.cache.find(
-        (r) => r.name.toLowerCase() === "visitor"
-      );
+      // Check if addrole module is enabled and has a role configured
+      const addRoleModule = await GuildModule.findOne({
+        guildId: interaction.guild.id,
+        moduleId: "addrole",
+        enabled: true,
+      });
 
-      if (visitorRole && member.roles.cache.has(visitorRole.id)) {
-        await member.roles.remove(visitorRole);
+      let roleToRemove = null;
+      if (addRoleModule && addRoleModule.settings?.roleId) {
+        const configuredRole = interaction.guild.roles.cache.get(
+          addRoleModule.settings.roleId
+        );
+
+        if (configuredRole && member.roles.cache.has(configuredRole.id)) {
+          roleToRemove = configuredRole;
+        }
+      }
+
+      // Remove the configured role if it exists
+      if (roleToRemove) {
+        await member.roles.remove(roleToRemove);
       }
 
       // Add the new role
@@ -54,7 +69,9 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setTitle("Add Role")
         .setDescription(
-          `✅ Successfully added <@&${role.id}> to <@${user.id}>.`
+          roleToRemove
+            ? `✅ Successfully added <@&${role.id}> to <@${user.id}> and removed <@&${roleToRemove.id}>.`
+            : `✅ Successfully added <@&${role.id}> to <@${user.id}>.`
         )
         .setColor("Green");
 
