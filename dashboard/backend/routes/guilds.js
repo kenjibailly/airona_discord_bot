@@ -1158,7 +1158,7 @@ router.post(
       // Trigger bot to register the command
       try {
         await axios.post(
-          `${process.env.DOMAIN}/api/bot/register-commands/${guildId}`,
+          `${process.env.BOT_API_URL}/api/bot/register-commands/${guildId}`,
           {
             guildId,
             commandName: command,
@@ -1443,8 +1443,10 @@ router.delete(
       });
 
       if (!customCommand) {
-        return res.status(404).json({ error: "Reaction role not found" });
+        return res.status(404).json({ error: "Custom command not found" });
       }
+
+      const commandName = customCommand.name;
 
       await customCommand.deleteOne();
 
@@ -1459,6 +1461,26 @@ router.delete(
       });
 
       await changeLog.save();
+
+      try {
+        await axios.post(
+          `${process.env.BOT_API_URL}/api/bot/register-commands/${guildId}`,
+          {
+            guildId,
+            commandName,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.INTERNAL_API_SECRET}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        logger.success(`Triggered command registration for guild ${guildId}`);
+      } catch (error) {
+        console.error(`Error registering bot command /${command}:`, error);
+        // Don't fail the request if command registration fails
+      }
 
       res.json({ success: true });
     } catch (err) {
