@@ -1117,8 +1117,15 @@ router.post(
   checkGuildPermission,
   async (req, res) => {
     const { guildId, userId, userName } = req.params;
-    const { name, command, description, replies, allowedRoles, embedColor } =
-      req.body;
+    const {
+      name,
+      command,
+      description,
+      replies,
+      allowedRoles,
+      embedColor,
+      tagUser,
+    } = req.body;
 
     try {
       const customCommand = new CustomCommand({
