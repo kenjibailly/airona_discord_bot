@@ -8,6 +8,7 @@ import EmbedBuilder from "./pages/EmbedBuilder";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminSettings from "./pages/AdminSettings";
 import ChangeLogs from "./pages/ChangeLogs";
+import CustomCommandEditor from "./pages/CustomCommandEditor";
 
 export default function App() {
   return (
@@ -46,10 +47,26 @@ export default function App() {
         }
       />
       <Route
+        path="/guild/:guildId/module/customcommands/create/"
+        element={
+          <ProtectedRoute>
+            <CustomCommandEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/guild/:guildId/module/reactionroles/edit/:reactionRoleId"
         element={
           <ProtectedRoute>
             <ReactionRoleEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/guild/:guildId/module/customcommands/edit/:customCommandId"
+        element={
+          <ProtectedRoute>
+            <CustomCommandEditor />
           </ProtectedRoute>
         }
       />

@@ -8,7 +8,8 @@ const {
 const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
-
+const express = require("express");
+const botApiRoutes = require("./routes/botApi");
 // Utilities
 const Logger = require("./utilities/logger.js");
 global.logger = new Logger("Bot");
@@ -71,3 +72,19 @@ for (const file of eventFiles) {
 
 // Login Discord
 client.login(process.env.DISCORD_TOKEN);
+
+// Create Express app for internal API
+const app = express();
+app.use(express.json());
+
+// Make Discord client available to routes
+app.set("discordClient", client);
+
+// Register bot API routes
+app.use("/api/bot", botApiRoutes);
+
+// Start Express server
+const PORT = process.env.BOT_API_PORT || 3000;
+app.listen(PORT, () => {
+  logger.success(`Bot API listening on port ${PORT}`);
+});

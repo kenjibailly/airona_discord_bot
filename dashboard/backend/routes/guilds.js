@@ -77,6 +77,12 @@ router.get(
           description: "Settings for the add-role command",
           category: "general",
         },
+        {
+          id: "customcommands",
+          title: "Custom Commands",
+          description: "Add a custom command",
+          category: "general",
+        },
         // Blue Protocol Modules
         {
           id: "worldboss",
@@ -405,6 +411,7 @@ router.put(
 );
 
 const axios = require("axios");
+const CustomCommand = require("../models/CustomCommand");
 // Add this route after your existing routes
 router.get(
   "/:guildId/channels",
@@ -542,6 +549,26 @@ router.get(
     } catch (err) {
       console.error("Error fetching reaction roles:", err);
       res.status(500).json({ error: "Failed to fetch reaction roles" });
+    }
+  }
+);
+
+// Get all custom commands for a guild
+router.get(
+  "/:guildId/custom-commands",
+  requireAuth,
+  checkGuildPermission,
+  async (req, res) => {
+    const { guildId } = req.params;
+
+    try {
+      const customCommands = await CustomCommand.find({ guildId }).sort({
+        createdAt: -1,
+      });
+      res.json({ customCommands });
+    } catch (err) {
+      console.error("Error fetching custom commands:", err);
+      res.status(500).json({ error: "Failed to fetch custom commands" });
     }
   }
 );
@@ -847,6 +874,128 @@ router.put(
   }
 );
 
+router.put(
+  "/:guildId/custom-commands/:customCommandId/:userId/:userName",
+  requireAuth,
+  checkGuildPermission,
+  async (req, res) => {
+    const { guildId, customCommandId, userId, userName } = req.params;
+    const {
+      name,
+      command,
+      description,
+      replies,
+      allowedRoles,
+      embedColor,
+      tagUser,
+    } = req.body;
+
+    try {
+      const customCommand = await CustomCommand.findOne({
+        _id: customCommandId,
+        guildId,
+      });
+
+      if (!customCommand) {
+        return res.status(404).json({ error: "Custom command not found" });
+      }
+
+      // Track changes for changelog
+      const changes = [];
+
+      // Check what changed
+      if (customCommand.name !== name) {
+        changes.push(`changed name to "${name}"`);
+      }
+
+      if (customCommand.description !== description) {
+        changes.push(`changed description to "${description}"`);
+      }
+
+      if (customCommand.tagUser !== tagUser) {
+        changes.push(`changed tagUser to "${tagUser}"`);
+      }
+
+      // Check role restrictions
+      const oldAllowedRoles = JSON.stringify(
+        (customCommand.allowedRoles || []).sort()
+      );
+      const newAllowedRoles = JSON.stringify((allowedRoles || []).sort());
+      if (oldAllowedRoles !== newAllowedRoles) {
+        changes.push("changed allowed roles");
+      }
+
+      // Update fields
+      customCommand.name = name;
+      customCommand.description = description;
+      customCommand.command = command;
+      customCommand.replies = replies;
+      customCommand.allowedRoles = allowedRoles || [];
+      customCommand.embedColor = embedColor;
+      customCommand.tagUser = tagUser;
+      customCommand.updatedAt = new Date();
+
+      await customCommand.save();
+
+      // Generate changelog description
+      let changeDescription = "No changes made";
+      if (changes.length === 1) {
+        changeDescription = `Updated: ${changes[0]}`;
+      } else if (changes.length === 2) {
+        changeDescription = `Updated: ${changes[0]} and ${changes[1]}`;
+      } else if (changes.length > 2 && changes.length <= 5) {
+        const lastChange = changes.pop();
+        changeDescription = `Updated: ${changes.join(", ")}, and ${lastChange}`;
+      } else if (changes.length > 5) {
+        changeDescription = `Updated ${changes.length} settings`;
+      }
+
+      // Create changelog entry
+      const changeLog = new ChangeLog({
+        guildId,
+        moduleId: "reaction roles",
+        user: {
+          id: userId,
+          name: userName,
+        },
+        description: changeDescription,
+        metadata: {
+          customCommandId: customCommand._id,
+          customCommandName: name,
+        },
+      });
+
+      await changeLog.save();
+
+      // Trigger bot to register the command
+      try {
+        await axios.post(
+          `${process.env.BOT_API_URL}/api/bot/register-commands/${guildId}`,
+          {
+            guildId,
+            commandName: command,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.INTERNAL_API_SECRET}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        logger.success(`Triggered command registration for guild ${guildId}`);
+      } catch (error) {
+        console.error(`Error registering bot command /${command}:`, error);
+        // Don't fail the request if command registration fails
+      }
+
+      res.json({ success: true, customCommand });
+    } catch (err) {
+      console.error("Error updating custom command:", err);
+      res.status(500).json({ error: "Failed to update custom command" });
+    }
+  }
+);
+
 // Create reaction role
 router.post(
   "/:guildId/reaction-roles/:userId/:userName",
@@ -957,6 +1106,73 @@ router.post(
     } catch (err) {
       console.error("Error creating reaction role:", err);
       res.status(500).json({ error: "Failed to create reaction role" });
+    }
+  }
+);
+
+// Create custom commands
+router.post(
+  "/:guildId/custom-commands/:userId/:userName",
+  requireAuth,
+  checkGuildPermission,
+  async (req, res) => {
+    const { guildId, userId, userName } = req.params;
+    const { name, command, description, replies, allowedRoles, embedColor } =
+      req.body;
+
+    try {
+      const customCommand = new CustomCommand({
+        guildId,
+        name,
+        command,
+        description,
+        replies,
+        allowedRoles: allowedRoles || [],
+        embedColor,
+        tagUser,
+      });
+
+      await customCommand.save();
+
+      logger.success(`Created custom command "${name}" for guild ${guildId}`);
+
+      const changeLog = new ChangeLog({
+        guildId,
+        moduleId: "custom command",
+        user: {
+          id: userId,
+          name: userName,
+        },
+        description: `${name} created`,
+      });
+
+      await changeLog.save();
+
+      // Trigger bot to register the command
+      try {
+        await axios.post(
+          `${process.env.DOMAIN}/api/bot/register-commands/${guildId}`,
+          {
+            guildId,
+            commandName: command,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.INTERNAL_API_SECRET}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        logger.success(`Triggered command registration for guild ${guildId}`);
+      } catch (error) {
+        console.error(`Error registering bot command /${command}:`, error);
+        // Don't fail the request if command registration fails
+      }
+
+      res.json({ success: true, customCommand });
+    } catch (err) {
+      console.error("Error creating custom command:", err);
+      res.status(500).json({ error: "Failed to create custom command" });
     }
   }
 );
@@ -1113,6 +1329,31 @@ router.get(
   }
 );
 
+router.get(
+  "/:guildId/custom-commands/:customCommandId",
+  requireAuth,
+  checkGuildPermission,
+  async (req, res) => {
+    const { guildId, customCommandId } = req.params;
+
+    try {
+      const customCommand = await CustomCommand.findOne({
+        _id: customCommandId,
+        guildId,
+      });
+
+      if (!customCommand) {
+        return res.status(404).json({ error: "Custom commnd not found" });
+      }
+
+      res.json(customCommand);
+    } catch (err) {
+      console.error("Error fetching custom command:", err);
+      res.status(500).json({ error: "Failed to fetch custom command" });
+    }
+  }
+);
+
 // Then your PUT route comes after this...
 router.put(
   "/:guildId/reaction-roles/:reactionRoleId",
@@ -1176,6 +1417,46 @@ router.delete(
     } catch (err) {
       console.error("Error deleting reaction role:", err);
       res.status(500).json({ error: "Failed to delete reaction role" });
+    }
+  }
+);
+
+// Delete custom command
+router.delete(
+  "/:guildId/custom-commands/:customCommandId/:userId/:userName",
+  requireAuth,
+  checkGuildPermission,
+  async (req, res) => {
+    const { guildId, customCommandId, userId, userName } = req.params;
+
+    try {
+      const customCommand = await CustomCommand.findOne({
+        _id: customCommandId,
+        guildId,
+      });
+
+      if (!customCommand) {
+        return res.status(404).json({ error: "Reaction role not found" });
+      }
+
+      await customCommand.deleteOne();
+
+      const changeLog = new ChangeLog({
+        guildId,
+        moduleId: "custom command",
+        user: {
+          id: userId,
+          name: userName,
+        },
+        description: `${customCommand.name} deleted`,
+      });
+
+      await changeLog.save();
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Error deleting custom command:", err);
+      res.status(500).json({ error: "Failed to delete custom command" });
     }
   }
 );

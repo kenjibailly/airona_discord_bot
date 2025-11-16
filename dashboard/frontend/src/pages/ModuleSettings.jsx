@@ -13,6 +13,7 @@ import TicketsSettings from "../components/modules/TicketsSettings";
 import StatusSettings from "../components/modules/StatusSettings";
 import DungeonSettings from "../components/modules/DungeonSettings";
 import AddRoleSettings from "../components/modules/AddRoleSettings";
+import CustomCommandSettings from "../components/modules/CustomCommandSettings";
 
 export default function ModuleSettings() {
   const { guildId, moduleId } = useParams();
@@ -36,6 +37,8 @@ export default function ModuleSettings() {
         return <ReactionRolesSettings guildId={guildId} user={user} />;
       case "tickets":
         return <TicketsSettings guildId={guildId} user={user} />;
+      case "customcommands":
+        return <CustomCommandSettings guildId={guildId} user={user} />;
       case "worldboss":
         return <WorldBossSettings guildId={guildId} user={user} />;
       case "events":
@@ -62,6 +65,7 @@ export default function ModuleSettings() {
       autorole: "Auto Role",
       reactionroles: "Reaction Roles",
       tickets: "Tickets",
+      customcommands: "Custom Commands",
       worldboss: "World Boss Notifier",
       events: "Events Notifier",
       party_raid: "Raid Party Finder",

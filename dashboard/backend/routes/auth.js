@@ -77,6 +77,7 @@ router.get("/callback", async (req, res) => {
 
     req.session.user = userResponse.data;
     req.session.guilds = mutualGuilds;
+    req.session.accessToken = tokenResponse.data.access_token;
 
     req.session.save((err) => {
       if (err) {
@@ -114,28 +115,55 @@ router.post("/refresh-guilds", async (req, res) => {
     return res.status(401).json({ error: "Not authenticated" });
   }
 
+  // Make sure you saved the access token during login
+  if (!req.session.accessToken) {
+    return res.status(401).json({
+      error: "No access token. Please log in again.",
+      requireReauth: true,
+    });
+  }
+
   try {
-    // Fetch fresh guilds from Discord API
-    const response = await axios.get(
+    // Use the USER's access token, NOT the bot token
+    const guildsResponse = await axios.get(
+      "https://discord.com/api/users/@me/guilds",
+      {
+        headers: { Authorization: `Bearer ${req.session.accessToken}` },
+      }
+    );
+
+    const botGuildsResponse = await axios.get(
       "https://discord.com/api/users/@me/guilds",
       {
         headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` },
       }
     );
 
-    // Filter guilds where user has admin permissions
-    const adminGuilds = response.data.filter(
-      (guild) => (guild.permissions & 0x8) === 0x8
+    const MANAGE_GUILD = 0x20;
+    const botGuildIds = new Set(botGuildsResponse.data.map((g) => g.id));
+    const mutualGuilds = guildsResponse.data.filter((g) => {
+      const hasBot = botGuildIds.has(g.id);
+      const hasPermission =
+        (parseInt(g.permissions) & MANAGE_GUILD) === MANAGE_GUILD;
+      return hasBot && hasPermission;
+    });
+
+    req.session.guilds = mutualGuilds;
+
+    res.json({ guilds: mutualGuilds });
+  } catch (error) {
+    console.error(
+      "Error refreshing guilds:",
+      error.response?.data || error.message
     );
 
-    // Update session with fresh guilds
-    req.session.guilds = adminGuilds;
+    if (error.response?.status === 401 || error.response?.status === 429) {
+      return res.status(401).json({
+        error: "Please log in again.",
+        requireReauth: true,
+      });
+    }
 
-    res.json({
-      guilds: adminGuilds,
-    });
-  } catch (error) {
-    console.error("Error refreshing guilds:", error);
     res.status(500).json({ error: "Failed to refresh guilds" });
   }
 });
