@@ -36,7 +36,7 @@ export default function StatusSettings({ guildId, user }) {
 
     try {
       await axios.put(
-        `/api/admin/modules/status/settings/${user.id}/@${user.username}`,
+        `/api/admin/modules/status/settings/`,
         {
           settings,
         },
